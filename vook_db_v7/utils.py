@@ -1,7 +1,11 @@
 import datetime
 import json
+from time import sleep
 
+import pandas as pd
 import requests
+
+from vook_db_v7.config import MAX_PAGE, REQ_URL, WANT_ITEMS, req_params
 
 
 def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):

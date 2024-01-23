@@ -12,7 +12,6 @@ import pandas as pd
 import pymysql
 from sshtunnel import SSHTunnelForwarder
 
-from vook_db_v7.config import MAX_PAGE, REQ_URL, WANT_ITEMS, req_params
 from vook_db_v7.local_config import get_rds_config  # noqa
 from vook_db_v7.local_config import get_ec2_config, put_ec2_config
 from vook_db_v7.utils import DataFrame_maker
