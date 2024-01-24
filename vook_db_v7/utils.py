@@ -65,3 +65,19 @@ def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
     df_main["created_at"] = run_time
     df_main["updated_at"] = run_time
     return df_main
+
+
+# エラーワードに対して対応表をもとにレスポンスする関数
+def convertor(input_string, errata_table):
+    # 特定のワードが DataFrame に含まれているかどうかを確認し、行番号を表示
+    row_indices = errata_table.index[
+        errata_table.apply(lambda row: input_string in row.values, axis=1)
+    ].tolist()
+    if row_indices:
+        output = errata_table["corrected"][row_indices[0]]
+        print(f"{input_string}を{output}に変換します")
+        return output
+
+    else:
+        print(f"{input_string}は対応表に存在しません。")
+        return input_string

@@ -14,7 +14,7 @@ from sshtunnel import SSHTunnelForwarder
 
 from vook_db_v7.local_config import get_rds_config  # noqa
 from vook_db_v7.local_config import get_ec2_config, put_ec2_config
-from vook_db_v7.utils import DataFrame_maker
+from vook_db_v7.utils import DataFrame_maker, convertor
 
 
 def main(event, context):
@@ -73,21 +73,6 @@ def main(event, context):
 
     # 対応表を読み出し
     errata_table = pd.read_csv("./data/input/query_ng_ok.csv")
-
-    # エラーワードに対して対応表をもとにレスポンスする関数
-    def convertor(input_string, errata_table):
-        # 特定のワードが DataFrame に含まれているかどうかを確認し、行番号を表示
-        row_indices = errata_table.index[
-            errata_table.apply(lambda row: input_string in row.values, axis=1)
-        ].tolist()
-        if row_indices:
-            output = errata_table["corrected"][row_indices[0]]
-            print(f"{input_string}を{output}に変換します")
-            return output
-
-        else:
-            print(f"{input_string}は対応表に存在しません。")
-            return input_string
 
     def validate_input(input_string):
         """
