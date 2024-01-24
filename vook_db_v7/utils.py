@@ -164,3 +164,14 @@ def create_wort_list(df_from_db, unit):
         word = words[row]
         words[row] = validate_input(word)
     return words
+
+
+def create_df_no_ng_keyword(
+    df_from_db, words_knowledge_name, words_brand_name, words_line_name
+):
+    df_no_ng_keyword = pd.DataFrame(columns=df_from_db.columns)
+    df_no_ng_keyword["knowledge_id"] = df_from_db["knowledge_id"].values
+    df_no_ng_keyword["knowledge_name"] = words_knowledge_name
+    df_no_ng_keyword["brand_name"] = words_brand_name
+    df_no_ng_keyword["line_name"] = words_line_name
+    return df_no_ng_keyword
