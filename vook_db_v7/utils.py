@@ -22,7 +22,13 @@ from vook_db_v7.config import (
     size_id,
     sleep_second,
 )
-from vook_db_v7.local_config import get_rds_config, s3_bucket, s3_key
+from vook_db_v7.local_config import (
+    get_rds_config,
+    get_rds_config_for_put,
+    put_ec2_config,
+    s3_bucket,
+    s3_key,
+)
 
 
 def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
@@ -235,3 +241,54 @@ def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_key):
         Body=csv_binary, Bucket=s3_bucket, Key=s3_key, ContentMD5=content_md5
     )
     print(f"CSV file uploaded to s3://{s3_bucket}/{s3_key}")
+
+
+def put_products(df_bulk):
+    config_ec2 = put_ec2_config()
+    # SSHトンネルの設定
+    with SSHTunnelForwarder(
+        (config_ec2["host_name"], config_ec2["ec2_port"]),
+        ssh_username=config_ec2["ssh_username"],
+        ssh_pkey=config_ec2["ssh_pkey"],
+        remote_bind_address=(
+            config_ec2["rds_end_point"],
+            config_ec2["rds_port"],
+        ),
+    ) as server:
+        print(f"Local bind port: {server.local_bind_port}")
+        conn = None
+        try:
+            conn = pymysql.connect(
+                **get_rds_config_for_put(server.local_bind_port),
+                connect_timeout=10,
+            )
+            cursor = conn.cursor()
+            # SQLクエリの実行
+            create_table_query = read_sql_file("./vook_db_v7/sql/create_products.sql")
+            # 既存DBの中身を削除する処理を記載
+            cursor.execute("TRUNCATE TABLE products")
+            cursor.execute(create_table_query)
+            # DataFrameをRDSのテーブルに挿入
+            insert_query = read_sql_file("./vook_db_v7/sql/insert_into_products.sql")
+            for _, row in df_bulk.iterrows():
+                print(row)
+                cursor.execute(
+                    insert_query,
+                    (
+                        row["id"],
+                        row["name"],
+                        row["url"],
+                        row["price"],
+                        row["knowledge_id"],
+                        row["platform_id"],
+                        row["size_id"],
+                        row["created_at"],
+                        row["updated_at"],
+                    ),
+                )
+            conn.commit()
+        except pymysql.MySQLError as e:
+            print(f"Error connecting to MySQL: {e}")
+        finally:
+            if conn is not None:
+                conn.close()
