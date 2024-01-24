@@ -201,7 +201,7 @@ def main(event, context):
         try:
             conn = pymysql.connect(
                 **get_rds_config_for_put(server.local_bind_port),
-                connect_timeout=10,  # noqa
+                connect_timeout=10,
             )
             cursor = conn.cursor()
             # SQLクエリの実行
@@ -225,7 +225,7 @@ def main(event, context):
 
             cursor.execute(create_table_query)
             # DataFrameをRDSのテーブルに挿入
-            insert_query = "INSERT INTO products (id,name,url,price,knowledge_id,platform_id,size_id,created_at,updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"  # noqa
+            insert_query = "INSERT INTO products (id,name,url,price,knowledge_id,platform_id,size_id,created_at,updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
             for index, row in df_bulk.iterrows():
                 print(row)
@@ -278,7 +278,7 @@ def main(event, context):
         try:
             conn = pymysql.connect(
                 **get_rds_config_for_put(server.local_bind_port),
-                connect_timeout=10,  # noqa
+                connect_timeout=10,
             )
 
             cursor = conn.cursor()

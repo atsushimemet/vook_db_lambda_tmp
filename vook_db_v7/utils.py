@@ -4,7 +4,6 @@ import re
 from time import sleep
 
 import pandas as pd
-import pymysql
 import requests
 
 from vook_db_v7.config import MAX_PAGE, REQ_URL, WANT_ITEMS, req_params
@@ -47,7 +46,7 @@ def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
     df["knowledge_id"] = knowledge_id
     df["size_id"] = size_id
     df_main = df.rename(
-        columns={"itemName": "name", "itemPrice": "price", "itemUrl": "url"}  # noqa
+        columns={"itemName": "name", "itemPrice": "price", "itemUrl": "url"}
     )
     df_main = df_main.reindex(
         columns=[
