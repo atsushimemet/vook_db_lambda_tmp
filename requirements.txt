@@ -3,3 +3,7 @@ pandas
 pymysql
 requests
 sshtunnel
+black
+flake8
+isort
+mypy
