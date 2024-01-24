@@ -4,9 +4,12 @@ import re
 from time import sleep
 
 import pandas as pd
+import pymysql
 import requests
+from sshtunnel import SSHTunnelForwarder
 
 from vook_db_v7.config import MAX_PAGE, REQ_URL, WANT_ITEMS, req_params
+from vook_db_v7.local_config import get_rds_config
 
 
 def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
@@ -120,3 +123,34 @@ def read_sql_file(file_path):
     except IOError as e:
         # ファイルが開けない、見つからない、などのエラー処理
         return f"Error reading file: {e}"
+
+
+def get_knowledges(config_ec2, query, df_from_db):
+    with SSHTunnelForwarder(
+        (config_ec2["host_name"], config_ec2["ec2_port"]),
+        ssh_username=config_ec2["ssh_username"],
+        ssh_pkey=config_ec2["ssh_pkey"],
+        remote_bind_address=(
+            config_ec2["rds_end_point"],
+            config_ec2["rds_port"],
+        ),
+    ) as server:
+        print(f"Local bind port: {server.local_bind_port}")
+        conn = None
+        try:
+            conn = pymysql.connect(
+                **get_rds_config(server.local_bind_port), connect_timeout=10
+            )
+            cursor = conn.cursor()
+            # SQLクエリの実行
+            cursor.execute(query)
+            for row in cursor:  # column1, column2, ...は取得したいカラム名に合わせて変更してください
+                df_from_db = pd.concat(
+                    [df_from_db, pd.DataFrame([row])], ignore_index=True
+                )
+            return df_from_db
+        except pymysql.MySQLError as e:
+            print(f"Error connecting to MySQL: {e}")
+        finally:
+            if conn is not None:
+                conn.close()

@@ -13,7 +13,6 @@ from sshtunnel import SSHTunnelForwarder
 
 from vook_db_v7.local_config import (
     get_ec2_config,
-    get_rds_config,
     get_rds_config_for_put,
     put_ec2_config,
 )
@@ -29,46 +28,21 @@ from vook_db_v7.tests import (
     updated_at_checker,
     url_checker,
 )
-from vook_db_v7.utils import DataFrame_maker, read_sql_file, validate_input
+from vook_db_v7.utils import (
+    DataFrame_maker,
+    get_knowledges,
+    read_sql_file,
+    validate_input,
+)
 
 
 def main(event, context):
-    """DBからテーブル取得"""
-
     config_ec2 = get_ec2_config()
     query = read_sql_file("./vook_db_v7/sql/knowledges.sql")
     df_from_db = pd.DataFrame()
-
-    # SSHトンネルの設定
-    with SSHTunnelForwarder(
-        (config_ec2["host_name"], config_ec2["ec2_port"]),
-        ssh_username=config_ec2["ssh_username"],
-        ssh_pkey=config_ec2["ssh_pkey"],
-        remote_bind_address=(
-            config_ec2["rds_end_point"],
-            config_ec2["rds_port"],
-        ),
-    ) as server:
-        print(f"Local bind port: {server.local_bind_port}")
-        conn = None
-
-        try:
-            conn = pymysql.connect(
-                **get_rds_config(server.local_bind_port), connect_timeout=10
-            )
-            cursor = conn.cursor()
-            # SQLクエリの実行
-            cursor.execute(query)
-            for row in cursor:  # column1, column2, ...は取得したいカラム名に合わせて変更してください
-                df_from_db = pd.concat(
-                    [df_from_db, pd.DataFrame([row])], ignore_index=True
-                )
-
-        except pymysql.MySQLError as e:
-            print(f"Error connecting to MySQL: {e}")
-        finally:
-            if conn is not None:
-                conn.close()
+    df_from_db = get_knowledges(config_ec2, query, df_from_db)
+    print(df_from_db.head())
+    print(df_from_db.shape)
 
     # 対象のワードリスト作成
     words_brand_name = df_from_db["brand_name"].values
@@ -226,12 +200,7 @@ def main(event, context):
     """DBからテーブル取得"""
 
     config_ec2 = put_ec2_config()
-    query = """
-    SELECT
-        *
-    FROM
-        products
-    """
+    query = read_sql_file("./vook_db_v7/sql/products.sql")
     df_from_db = pd.DataFrame()
 
     # SSHトンネルの設定
