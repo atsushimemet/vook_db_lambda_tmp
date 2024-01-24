@@ -9,9 +9,7 @@ from time import sleep
 import boto3
 import numpy as np
 import pandas as pd
-import pymysql
 import requests
-from sshtunnel import SSHTunnelForwarder
 
 from vook_db_v7.config import (
     MAX_PAGE,
@@ -22,13 +20,7 @@ from vook_db_v7.config import (
     size_id,
     sleep_second,
 )
-from vook_db_v7.local_config import (
-    get_rds_config,
-    get_rds_config_for_put,
-    put_ec2_config,
-    s3_bucket,
-    s3_key,
-)
+from vook_db_v7.local_config import s3_bucket, s3_key
 
 
 def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
@@ -129,52 +121,6 @@ def validate_input(input_string):
         return convertor(input_string, errata_table)
 
 
-def read_sql_file(file_path):
-    """
-    指定されたファイルパスからSQLファイルを読み込み、その内容を文字列として返す。
-
-    :param file_path: 読み込む.sqlファイルのパス
-    :return: ファイルの内容を含む文字列
-    """
-    try:
-        with open(file_path, "r") as file:
-            return file.read()
-    except IOError as e:
-        # ファイルが開けない、見つからない、などのエラー処理
-        return f"Error reading file: {e}"
-
-
-def get_knowledges(config_ec2, query, df_from_db):
-    with SSHTunnelForwarder(
-        (config_ec2["host_name"], config_ec2["ec2_port"]),
-        ssh_username=config_ec2["ssh_username"],
-        ssh_pkey=config_ec2["ssh_pkey"],
-        remote_bind_address=(
-            config_ec2["rds_end_point"],
-            config_ec2["rds_port"],
-        ),
-    ) as server:
-        print(f"Local bind port: {server.local_bind_port}")
-        conn = None
-        try:
-            conn = pymysql.connect(
-                **get_rds_config(server.local_bind_port), connect_timeout=10
-            )
-            cursor = conn.cursor()
-            # SQLクエリの実行
-            cursor.execute(query)
-            for row in cursor:  # column1, column2, ...は取得したいカラム名に合わせて変更してください
-                df_from_db = pd.concat(
-                    [df_from_db, pd.DataFrame([row])], ignore_index=True
-                )
-            return df_from_db
-        except pymysql.MySQLError as e:
-            print(f"Error connecting to MySQL: {e}")
-        finally:
-            if conn is not None:
-                conn.close()
-
-
 def create_wort_list(df_from_db, unit):
     # 対象のワードリスト作成
     words = df_from_db[f"{unit}_name"].values
@@ -241,54 +187,3 @@ def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_key):
         Body=csv_binary, Bucket=s3_bucket, Key=s3_key, ContentMD5=content_md5
     )
     print(f"CSV file uploaded to s3://{s3_bucket}/{s3_key}")
-
-
-def put_products(df_bulk):
-    config_ec2 = put_ec2_config()
-    # SSHトンネルの設定
-    with SSHTunnelForwarder(
-        (config_ec2["host_name"], config_ec2["ec2_port"]),
-        ssh_username=config_ec2["ssh_username"],
-        ssh_pkey=config_ec2["ssh_pkey"],
-        remote_bind_address=(
-            config_ec2["rds_end_point"],
-            config_ec2["rds_port"],
-        ),
-    ) as server:
-        print(f"Local bind port: {server.local_bind_port}")
-        conn = None
-        try:
-            conn = pymysql.connect(
-                **get_rds_config_for_put(server.local_bind_port),
-                connect_timeout=10,
-            )
-            cursor = conn.cursor()
-            # SQLクエリの実行
-            create_table_query = read_sql_file("./vook_db_v7/sql/create_products.sql")
-            # 既存DBの中身を削除する処理を記載
-            cursor.execute("TRUNCATE TABLE products")
-            cursor.execute(create_table_query)
-            # DataFrameをRDSのテーブルに挿入
-            insert_query = read_sql_file("./vook_db_v7/sql/insert_into_products.sql")
-            for _, row in df_bulk.iterrows():
-                print(row)
-                cursor.execute(
-                    insert_query,
-                    (
-                        row["id"],
-                        row["name"],
-                        row["url"],
-                        row["price"],
-                        row["knowledge_id"],
-                        row["platform_id"],
-                        row["size_id"],
-                        row["created_at"],
-                        row["updated_at"],
-                    ),
-                )
-            conn.commit()
-        except pymysql.MySQLError as e:
-            print(f"Error connecting to MySQL: {e}")
-        finally:
-            if conn is not None:
-                conn.close()

@@ -3,21 +3,12 @@
 
 import numpy as np
 import pandas as pd
-import pymysql
-from sshtunnel import SSHTunnelForwarder
 
-from vook_db_v7.local_config import (
-    get_ec2_config,
-    get_rds_config_for_put,
-    put_ec2_config,
-)
+from vook_db_v7.rds_handler import get_knowledges, get_products, put_products
 from vook_db_v7.tests import run_all_if_checker
 from vook_db_v7.utils import (
     create_df_no_ng_keyword,
     create_wort_list,
-    get_knowledges,
-    put_products,
-    read_sql_file,
     repeat_dataframe_maker,
     upload_s3,
 )
@@ -25,10 +16,7 @@ from vook_db_v7.utils import (
 
 def main(event, context):
     # 知識情報の取得
-    config_ec2 = get_ec2_config()
-    query = read_sql_file("./vook_db_v7/sql/knowledges.sql")
-    df_from_db = pd.DataFrame()
-    df_from_db = get_knowledges(config_ec2, query, df_from_db)
+    df_from_db = get_knowledges()
     # 対象のワードリスト作成
     words_brand_name = create_wort_list(df_from_db, "brand")
     words_line_name = create_wort_list(df_from_db, "line")
@@ -48,37 +36,6 @@ def main(event, context):
     upload_s3(df)
     # df_bulkをRDSに保存
     put_products(df_bulk)
-    """DBからテーブル取得"""
-    config_ec2 = put_ec2_config()
-    query = read_sql_file("./vook_db_v7/sql/products.sql")
-    df_from_db = pd.DataFrame()
-    # SSHトンネルの設定
-    with SSHTunnelForwarder(
-        (config_ec2["host_name"], config_ec2["ec2_port"]),
-        ssh_username=config_ec2["ssh_username"],
-        ssh_pkey=config_ec2["ssh_pkey"],
-        remote_bind_address=(
-            config_ec2["rds_end_point"],
-            config_ec2["rds_port"],
-        ),
-    ) as server:
-        print(f"Local bind port: {server.local_bind_port}")
-        conn = None
-        try:
-            conn = pymysql.connect(
-                **get_rds_config_for_put(server.local_bind_port),
-                connect_timeout=10,
-            )
-            cursor = conn.cursor()
-            # SQLクエリの実行
-            cursor.execute(query)
-            for row in cursor:  # column1, column2, ...は取得したいカラム名に合わせて変更してください
-                df_from_db = pd.concat(
-                    [df_from_db, pd.DataFrame([row])], ignore_index=True
-                )
-        except pymysql.MySQLError as e:
-            print(f"Error connecting to MySQL: {e}")
-        finally:
-            if conn is not None:
-                conn.close()
+    # RDSに保存したデータを確認
+    df_from_db = get_products()
     print(df_from_db.head(), df_from_db.shape)
