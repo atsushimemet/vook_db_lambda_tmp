@@ -3,6 +3,7 @@ import json
 import re
 from time import sleep
 
+import numpy as np
 import pandas as pd
 import pymysql
 import requests
@@ -154,3 +155,12 @@ def get_knowledges(config_ec2, query, df_from_db):
         finally:
             if conn is not None:
                 conn.close()
+
+
+def create_wort_list(df_from_db, unit):
+    # 対象のワードリスト作成
+    words = df_from_db[f"{unit}_name"].values
+    for row in np.arange(len(words)):
+        word = words[row]
+        words[row] = validate_input(word)
+    return words

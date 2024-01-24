@@ -30,9 +30,9 @@ from vook_db_v7.tests import (
 )
 from vook_db_v7.utils import (
     DataFrame_maker,
+    create_wort_list,
     get_knowledges,
     read_sql_file,
-    validate_input,
 )
 
 
@@ -41,26 +41,10 @@ def main(event, context):
     query = read_sql_file("./vook_db_v7/sql/knowledges.sql")
     df_from_db = pd.DataFrame()
     df_from_db = get_knowledges(config_ec2, query, df_from_db)
-    print(df_from_db.head())
-    print(df_from_db.shape)
-
     # 対象のワードリスト作成
-    words_brand_name = df_from_db["brand_name"].values
-    words_knowledge_name = df_from_db["knowledge_name"].values
-    words_line_name = df_from_db["line_name"].values
-
-    for row in np.arange(len(words_brand_name)):
-        word = words_brand_name[row]
-        words_brand_name[row] = validate_input(word)
-
-    for row in np.arange(len(words_knowledge_name)):
-        word = words_knowledge_name[row]
-        words_knowledge_name[row] = validate_input(word)
-
-    for row in np.arange(len(words_line_name)):
-        word = words_line_name[row]
-        words_line_name[row] = validate_input(word)
-
+    words_brand_name = create_wort_list(df_from_db, "brand")
+    words_line_name = create_wort_list(df_from_db, "line")
+    words_knowledge_name = create_wort_list(df_from_db, "knowledge")
     # 修正版のテーブルを作成
     df_from_db_corrected = pd.DataFrame(columns=df_from_db.columns)
     df_from_db_corrected["knowledge_id"] = df_from_db["knowledge_id"].values
