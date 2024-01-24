@@ -4,6 +4,7 @@ import re
 from time import sleep
 
 import pandas as pd
+import pymysql
 import requests
 
 from vook_db_v7.config import MAX_PAGE, REQ_URL, WANT_ITEMS, req_params
