@@ -29,30 +29,14 @@ from vook_db_v7.tests import (
     updated_at_checker,
     url_checker,
 )
-from vook_db_v7.utils import DataFrame_maker, validate_input
+from vook_db_v7.utils import DataFrame_maker, read_sql_file, validate_input
 
 
 def main(event, context):
     """DBからテーブル取得"""
 
     config_ec2 = get_ec2_config()
-    query = """
-    SELECT
-        a.id as knowledge_id,
-        a.name as knowledge_name,
-        b.name as brand_name,
-        c.name as line_name
-    FROM
-        knowledges a
-    LEFT JOIN
-        brands b
-    ON
-        a.brand_id = b.id
-    LEFT JOIN
-        `lines` c
-    ON
-        a.line_id = c.id
-    """
+    query = read_sql_file("./vook_db_v7/sql/knowledges.sql")
     df_from_db = pd.DataFrame()
 
     # SSHトンネルの設定
@@ -207,25 +191,13 @@ def main(event, context):
             # SQLクエリの実行
             print("ここに処理を書く")
 
-            create_table_query = """
-                    CREATE TABLE IF NOT EXISTS products (
-                        id bigint PRIMARY KEY AUTO_INCREMENT,
-                        name varchar(255) NOT NULL,
-                        url varchar(255) NOT NULL UNIQUE,
-                        price int NOT NULL,
-                        knowledge_id bigint NOT NULL,
-                        platform_id bigint NOT NULL,
-                        size_id bigint NOT NULL,
-                        created_at datetime(6) NOT NULL,
-                        updated_at datetime(6) NOT NULL
-                    )
-                """
+            create_table_query = read_sql_file("./vook_db_v7/sql/create_products.sql")
             # 既存DBの中身を削除する処理を記載
             cursor.execute("TRUNCATE TABLE products")
 
             cursor.execute(create_table_query)
             # DataFrameをRDSのテーブルに挿入
-            insert_query = "INSERT INTO products (id,name,url,price,knowledge_id,platform_id,size_id,created_at,updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            insert_query = read_sql_file("./vook_db_v7/sql/insert_into_products.sql")
 
             for index, row in df_bulk.iterrows():
                 print(row)

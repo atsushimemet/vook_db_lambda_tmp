@@ -105,3 +105,18 @@ def validate_input(input_string):
         # エラーワードがあればメッセージを吐き、convertor関数によって対応する
         print(f"エラーワード　{input_string}が存在しました:")
         return convertor(input_string, errata_table)
+
+
+def read_sql_file(file_path):
+    """
+    指定されたファイルパスからSQLファイルを読み込み、その内容を文字列として返す。
+
+    :param file_path: 読み込む.sqlファイルのパス
+    :return: ファイルの内容を含む文字列
+    """
+    try:
+        with open(file_path, "r") as file:
+            return file.read()
+    except IOError as e:
+        # ファイルが開けない、見つからない、などのエラー処理
+        return f"Error reading file: {e}"
