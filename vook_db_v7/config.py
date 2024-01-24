@@ -61,3 +61,7 @@ WANT_ITEMS = [
     "itemPrice",
     "itemUrl",
 ]
+
+platform_id = 1  # 楽天
+size_id = 999
+sleep_second = 1

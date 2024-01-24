@@ -11,6 +11,7 @@ import pandas as pd
 import pymysql
 from sshtunnel import SSHTunnelForwarder
 
+from vook_db_v7.config import platform_id, size_id, sleep_second
 from vook_db_v7.local_config import (
     get_ec2_config,
     get_rds_config_for_put,
@@ -51,11 +52,6 @@ def main(event, context):
     df_from_db_corrected["knowledge_name"] = words_knowledge_name
     df_from_db_corrected["brand_name"] = words_brand_name
     df_from_db_corrected["line_name"] = words_line_name
-
-    platform_id = 1  # 楽天
-    size_id = 999
-    sleep_second = 1
-
     data = df_from_db_corrected
 
     n_bulk = len(data)
