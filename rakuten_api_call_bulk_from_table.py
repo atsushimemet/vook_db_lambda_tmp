@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-import base64
-import hashlib
-from io import StringIO
-from time import sleep
 
-import boto3
 import numpy as np
 import pandas as pd
 import pymysql
@@ -23,6 +18,7 @@ from vook_db_v7.utils import (
     get_knowledges,
     read_sql_file,
     repeat_dataframe_maker,
+    upload_s3,
 )
 
 
@@ -48,32 +44,8 @@ def main(event, context):
     run_all_if_checker(df_bulk)
     # df_bulkをs３にも保存
     df = df_bulk
-    # S3のバケット名とオブジェクトキーを指定
-    s3_bucket = "vook-vook"
-    s3_key = "lambda_output/test2.csv"
-    # S3にアップロードするためのBoto3クライアントを作成
-    s3_client = boto3.client("s3")
-    # Pandas DataFrameをCSV形式の文字列に変換
-    csv_data = df.to_csv(index=False)
-    # 文字列IOを使ってCSVデータを書き込む
-    csv_buffer = StringIO()
-    csv_buffer.write(csv_data)
-    # 文字列IOのカーソルを先頭に戻す
-    csv_buffer.seek(0)
-    # バイナリデータとしてエンコード
-    csv_binary = csv_buffer.getvalue().encode("utf-8")
-    # ファイルのハッシュを計算
-    file_hash = hashlib.md5(csv_binary).digest()
-    # Base64エンコード
-    content_md5 = base64.b64encode(file_hash).decode("utf-8")
-    # S3にCSVファイルをアップロード
-    s3_client.put_object(
-        Body=csv_binary, Bucket=s3_bucket, Key=s3_key, ContentMD5=content_md5
-    )
-    print(f"CSV file uploaded to s3://{s3_bucket}/{s3_key}")
-
+    upload_s3(df)
     config_ec2 = put_ec2_config()
-
     # SSHトンネルの設定
     with SSHTunnelForwarder(
         (config_ec2["host_name"], config_ec2["ec2_port"]),
@@ -86,7 +58,6 @@ def main(event, context):
     ) as server:
         print(f"Local bind port: {server.local_bind_port}")
         conn = None
-
         try:
             conn = pymysql.connect(
                 **get_rds_config_for_put(server.local_bind_port),
@@ -94,17 +65,13 @@ def main(event, context):
             )
             cursor = conn.cursor()
             # SQLクエリの実行
-            print("ここに処理を書く")
-
             create_table_query = read_sql_file("./vook_db_v7/sql/create_products.sql")
             # 既存DBの中身を削除する処理を記載
             cursor.execute("TRUNCATE TABLE products")
-
             cursor.execute(create_table_query)
             # DataFrameをRDSのテーブルに挿入
             insert_query = read_sql_file("./vook_db_v7/sql/insert_into_products.sql")
-
-            for index, row in df_bulk.iterrows():
+            for _, row in df_bulk.iterrows():
                 print(row)
                 cursor.execute(
                     insert_query,
@@ -121,7 +88,6 @@ def main(event, context):
                     ),
                 )
             conn.commit()
-
         except pymysql.MySQLError as e:
             print(f"Error connecting to MySQL: {e}")
         finally:

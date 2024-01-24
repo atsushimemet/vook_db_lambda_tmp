@@ -1,8 +1,12 @@
+import base64
 import datetime
+import hashlib
 import json
 import re
+from io import StringIO
 from time import sleep
 
+import boto3
 import numpy as np
 import pandas as pd
 import pymysql
@@ -18,7 +22,7 @@ from vook_db_v7.config import (
     size_id,
     sleep_second,
 )
-from vook_db_v7.local_config import get_rds_config
+from vook_db_v7.local_config import get_rds_config, s3_bucket, s3_key
 
 
 def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
@@ -208,3 +212,26 @@ def repeat_dataframe_maker(
         break
         # 429エラー防止のためのタイムストップ
     return df_bulk
+
+
+def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_key):
+    # S3にアップロードするためのBoto3クライアントを作成
+    s3_client = boto3.client("s3")
+    # Pandas DataFrameをCSV形式の文字列に変換
+    csv_data = df.to_csv(index=False)
+    # 文字列IOを使ってCSVデータを書き込む
+    csv_buffer = StringIO()
+    csv_buffer.write(csv_data)
+    # 文字列IOのカーソルを先頭に戻す
+    csv_buffer.seek(0)
+    # バイナリデータとしてエンコード
+    csv_binary = csv_buffer.getvalue().encode("utf-8")
+    # ファイルのハッシュを計算
+    file_hash = hashlib.md5(csv_binary).digest()
+    # Base64エンコード
+    content_md5 = base64.b64encode(file_hash).decode("utf-8")
+    # S3にCSVファイルをアップロード
+    s3_client.put_object(
+        Body=csv_binary, Bucket=s3_bucket, Key=s3_key, ContentMD5=content_md5
+    )
+    print(f"CSV file uploaded to s3://{s3_bucket}/{s3_key}")
