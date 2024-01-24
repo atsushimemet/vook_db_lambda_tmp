@@ -2,7 +2,6 @@
 # coding: utf-8
 import base64
 import hashlib
-import re
 from io import StringIO
 from time import sleep
 
@@ -14,7 +13,7 @@ from sshtunnel import SSHTunnelForwarder
 
 from vook_db_v7.local_config import get_rds_config  # noqa
 from vook_db_v7.local_config import get_ec2_config, put_ec2_config
-from vook_db_v7.utils import DataFrame_maker, convertor
+from vook_db_v7.utils import DataFrame_maker, validate_input
 
 
 def main(event, context):
@@ -70,26 +69,6 @@ def main(event, context):
         finally:
             if conn is not None:
                 conn.close()
-
-    # 対応表を読み出し
-    errata_table = pd.read_csv("./data/input/query_ng_ok.csv")
-
-    def validate_input(input_string):
-        """
-        連続する2文字以上で構成されたワードのみをOKとし、単体1文字またはスペースの前後に単体1文字が含まれるワードをNGとするバリデータ関数
-        """
-        # 正規表現パターン: 単体1文字またはスペースの前後に単体1文字が含まれるワードを検出
-        pattern_ng = re.compile(r"^[!-~]$|\s[!-~]$|^[!-~]\s")
-
-        # 入力文字列がOKパターンに一致するか確認
-        # 入力文字列がNGパターンに一致するか確認
-        if not pattern_ng.search(input_string):
-            return input_string
-
-        else:
-            # エラーワードがあればメッセージを吐き、convertor関数によって対応する
-            print(f"エラーワード　{input_string}が存在しました:")
-            return convertor(input_string, errata_table)
 
     # 対象のワードリスト作成
     words_brand_name = df_from_db["brand_name"].values

@@ -1,5 +1,6 @@
 import datetime
 import json
+import re
 from time import sleep
 
 import pandas as pd
@@ -81,3 +82,26 @@ def convertor(input_string, errata_table):
     else:
         print(f"{input_string}は対応表に存在しません。")
         return input_string
+
+
+# 対応表を読み出し
+errata_table = pd.read_csv("./data/input/query_ng_ok.csv")
+
+
+def validate_input(input_string):
+    """
+    連続する2文字以上で構成されたワードのみをOKとし、単体1文字またはスペースの前後に単体1文字が含まれるワードをNGとするバリデータ関数
+    """
+    print("対応表", errata_table)
+    # 正規表現パターン: 単体1文字またはスペースの前後に単体1文字が含まれるワードを検出
+    pattern_ng = re.compile(r"^[!-~]$|\s[!-~]$|^[!-~]\s")
+
+    # 入力文字列がOKパターンに一致するか確認
+    # 入力文字列がNGパターンに一致するか確認
+    if not pattern_ng.search(input_string):
+        return input_string
+
+    else:
+        # エラーワードがあればメッセージを吐き、convertor関数によって対応する
+        print(f"エラーワード　{input_string}が存在しました:")
+        return convertor(input_string, errata_table)
