@@ -11,7 +11,6 @@ import pandas as pd
 import pymysql
 from sshtunnel import SSHTunnelForwarder
 
-from vook_db_v7.config import platform_id, size_id, sleep_second
 from vook_db_v7.local_config import (
     get_ec2_config,
     get_rds_config_for_put,
@@ -30,11 +29,11 @@ from vook_db_v7.tests import (
     url_checker,
 )
 from vook_db_v7.utils import (
-    DataFrame_maker,
     create_df_no_ng_keyword,
     create_wort_list,
     get_knowledges,
     read_sql_file,
+    repeat_dataframe_maker,
 )
 
 
@@ -52,24 +51,7 @@ def main(event, context):
         df_from_db, words_knowledge_name, words_brand_name, words_line_name
     )
 
-    n_bulk = len(df_no_ng_keyword)
-    df_bulk = pd.DataFrame()
-
-    for n in np.arange(n_bulk):
-        brand_name = df_no_ng_keyword.brand_name[n]
-        line_name = df_no_ng_keyword.line_name[n]
-        knowledge_name = df_no_ng_keyword.knowledge_name[n]
-        query = f"{brand_name} {line_name} {knowledge_name} 中古"
-        # query validatorが欲しい　半角1文字をなくす
-
-        knowledge_id = df_no_ng_keyword.knowledge_id[n]
-        print("検索キーワード:[" + query + "]", "knowledge_id:", knowledge_id)
-        output = DataFrame_maker(query, platform_id, knowledge_id, size_id)
-        df_bulk = pd.concat([df_bulk, output], ignore_index=True)
-        sleep(sleep_second)
-        break
-        # 429エラー防止のためのタイムストップ
-
+    df_bulk = repeat_dataframe_maker(df_no_ng_keyword)
     df_prev = pd.read_csv("./data/output/products_raw_prev.csv")
     PREV_ID_MAX = df_prev["id"].max()
     df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
