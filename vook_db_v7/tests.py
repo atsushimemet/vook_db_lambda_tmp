@@ -106,3 +106,17 @@ def updated_at_checker(file):
             print("incorrect updated_at values")
     else:
         print("there are null updated_at")
+
+
+def run_all_if_checker(df_bulk):
+    columns_checker(df_bulk)
+    id_checker(df_bulk)
+    name_checker(df_bulk)
+    knowledge_id_checker(df_bulk)
+    platform_id_checker(df_bulk)
+    url_checker(df_bulk)
+    price_checker(df_bulk)
+    size_id_checker(df_bulk)
+    updated_at_checker(df_bulk)
+    created_at_checker(df_bulk)
+    print("finish if check")

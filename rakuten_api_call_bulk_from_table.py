@@ -16,18 +16,7 @@ from vook_db_v7.local_config import (
     get_rds_config_for_put,
     put_ec2_config,
 )
-from vook_db_v7.tests import (
-    columns_checker,
-    created_at_checker,
-    id_checker,
-    knowledge_id_checker,
-    name_checker,
-    platform_id_checker,
-    price_checker,
-    size_id_checker,
-    updated_at_checker,
-    url_checker,
-)
+from vook_db_v7.tests import run_all_if_checker
 from vook_db_v7.utils import (
     create_df_no_ng_keyword,
     create_wort_list,
@@ -38,6 +27,7 @@ from vook_db_v7.utils import (
 
 
 def main(event, context):
+    # 知識情報の取得
     config_ec2 = get_ec2_config()
     query = read_sql_file("./vook_db_v7/sql/knowledges.sql")
     df_from_db = pd.DataFrame()
@@ -50,33 +40,17 @@ def main(event, context):
     df_no_ng_keyword = create_df_no_ng_keyword(
         df_from_db, words_knowledge_name, words_brand_name, words_line_name
     )
-
+    # df_bulkの作成
     df_bulk = repeat_dataframe_maker(df_no_ng_keyword)
     df_prev = pd.read_csv("./data/output/products_raw_prev.csv")
     PREV_ID_MAX = df_prev["id"].max()
     df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
-
-    columns_checker(df_bulk)
-    id_checker(df_bulk)
-    name_checker(df_bulk)
-    knowledge_id_checker(df_bulk)
-    platform_id_checker(df_bulk)
-    url_checker(df_bulk)
-    price_checker(df_bulk)
-    size_id_checker(df_bulk)
-    updated_at_checker(df_bulk)
-    created_at_checker(df_bulk)
-    print(df_bulk.dtypes)
-
-    print("finish")
-
-    """作成したdataframをcsvとして　s３にも保存しておく"""
-
+    run_all_if_checker(df_bulk)
+    # df_bulkをs３にも保存
     df = df_bulk
     # S3のバケット名とオブジェクトキーを指定
     s3_bucket = "vook-vook"
     s3_key = "lambda_output/test2.csv"
-
     # S3にアップロードするためのBoto3クライアントを作成
     s3_client = boto3.client("s3")
     # Pandas DataFrameをCSV形式の文字列に変換
@@ -86,7 +60,6 @@ def main(event, context):
     csv_buffer.write(csv_data)
     # 文字列IOのカーソルを先頭に戻す
     csv_buffer.seek(0)
-
     # バイナリデータとしてエンコード
     csv_binary = csv_buffer.getvalue().encode("utf-8")
     # ファイルのハッシュを計算
@@ -97,7 +70,6 @@ def main(event, context):
     s3_client.put_object(
         Body=csv_binary, Bucket=s3_bucket, Key=s3_key, ContentMD5=content_md5
     )
-
     print(f"CSV file uploaded to s3://{s3_bucket}/{s3_key}")
 
     config_ec2 = put_ec2_config()
