@@ -92,7 +92,6 @@ def convertor(input_string, ng_ok_table):
         output = ng_ok_table["corrected"][row_indices[0]]
         print(f"{input_string}を{output}に変換します")
         return output
-
     else:
         print(f"{input_string}は対応表に存在しません。")
         return input_string
@@ -106,27 +105,26 @@ def validate_input(input_string):
     """
     連続する2文字以上で構成されたワードのみをOKとし、単体1文字またはスペースの前後に単体1文字が含まれるワードをNGとするバリデータ関数
     """
-    print("対応表", ng_ok_table)
     # 正規表現パターン: 単体1文字またはスペースの前後に単体1文字が含まれるワードを検出
     pattern_ng = re.compile(r"^[!-~]$|\s[!-~]$|^[!-~]\s")
-    # 入力文字列がOKパターンに一致するか確認
     # 入力文字列がNGパターンに一致するか確認
     if not pattern_ng.search(input_string):
         return input_string
-
     else:
         # エラーワードがあればメッセージを吐き、convertor関数によって対応する
         print(f"エラーワード　{input_string}が存在しました:")
         return convertor(input_string, ng_ok_table)
 
 
-def create_wort_list(df_from_db, unit):
-    # 対象のワードリスト作成
-    words = df_from_db[f"{unit}_name"].values
+def create_wort_list(df_from_db: pd.DataFrame, unit: str) -> list:
+    """brand,line,knowledgeの連続2文字以上ワードかどうかを判定、修正する"""
+    words = df_from_db[
+        f"{unit}_name"
+    ].values.copy()  # NOTE:copyしないと関数内部で_nameカラムが更新される。
     for row in np.arange(len(words)):
         word = words[row]
         words[row] = validate_input(word)
-    return words
+    return list(words)
 
 
 def create_df_no_ng_keyword(

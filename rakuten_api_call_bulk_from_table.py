@@ -17,11 +17,10 @@ from vook_db_v7.utils import (
 def main(event, context):
     # 知識情報の取得
     df_from_db = get_knowledges()
-    print(df_from_db)
-    # # 対象のワードリスト作成
-    # words_brand_name = create_wort_list(df_from_db, "brand")
-    # words_line_name = create_wort_list(df_from_db, "line")
-    # words_knowledge_name = create_wort_list(df_from_db, "knowledge")
+    # 対象のワードリスト作成
+    words_brand_name = create_wort_list(df_from_db, "brand")
+    words_line_name = create_wort_list(df_from_db, "line")
+    words_knowledge_name = create_wort_list(df_from_db, "knowledge")
     # # 修正版のテーブルを作成
     # df_no_ng_keyword = create_df_no_ng_keyword(
     #     df_from_db, words_knowledge_name, words_brand_name, words_line_name
