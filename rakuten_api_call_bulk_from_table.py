@@ -21,10 +21,10 @@ def main(event, context):
     words_brand_name = create_wort_list(df_from_db, "brand")
     words_line_name = create_wort_list(df_from_db, "line")
     words_knowledge_name = create_wort_list(df_from_db, "knowledge")
-    # # 修正版のテーブルを作成
-    # df_no_ng_keyword = create_df_no_ng_keyword(
-    #     df_from_db, words_knowledge_name, words_brand_name, words_line_name
-    # )
+    # 修正版のテーブルを作成
+    df_no_ng_keyword = create_df_no_ng_keyword(
+        df_from_db, words_knowledge_name, words_brand_name, words_line_name
+    )
     # # df_bulkの作成
     # df_bulk = repeat_dataframe_maker(df_no_ng_keyword)
     # df_prev = pd.read_csv("./data/output/products_raw_prev.csv")
