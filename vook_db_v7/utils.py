@@ -83,13 +83,13 @@ def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
 
 
 # エラーワードに対して対応表をもとにレスポンスする関数
-def convertor(input_string, errata_table):
+def convertor(input_string, ng_ok_table):
     # 特定のワードが DataFrame に含まれているかどうかを確認し、行番号を表示
-    row_indices = errata_table.index[
-        errata_table.apply(lambda row: input_string in row.values, axis=1)
+    row_indices = ng_ok_table.index[
+        ng_ok_table.apply(lambda row: input_string in row.values, axis=1)
     ].tolist()
     if row_indices:
-        output = errata_table["corrected"][row_indices[0]]
+        output = ng_ok_table["corrected"][row_indices[0]]
         print(f"{input_string}を{output}に変換します")
         return output
 
@@ -99,17 +99,16 @@ def convertor(input_string, errata_table):
 
 
 # 対応表を読み出し
-errata_table = pd.read_csv("./data/input/query_ng_ok.csv")
+ng_ok_table = pd.read_csv("./data/input/query_ng_ok.csv")
 
 
 def validate_input(input_string):
     """
     連続する2文字以上で構成されたワードのみをOKとし、単体1文字またはスペースの前後に単体1文字が含まれるワードをNGとするバリデータ関数
     """
-    print("対応表", errata_table)
+    print("対応表", ng_ok_table)
     # 正規表現パターン: 単体1文字またはスペースの前後に単体1文字が含まれるワードを検出
     pattern_ng = re.compile(r"^[!-~]$|\s[!-~]$|^[!-~]\s")
-
     # 入力文字列がOKパターンに一致するか確認
     # 入力文字列がNGパターンに一致するか確認
     if not pattern_ng.search(input_string):
@@ -118,7 +117,7 @@ def validate_input(input_string):
     else:
         # エラーワードがあればメッセージを吐き、convertor関数によって対応する
         print(f"エラーワード　{input_string}が存在しました:")
-        return convertor(input_string, errata_table)
+        return convertor(input_string, ng_ok_table)
 
 
 def create_wort_list(df_from_db, unit):
