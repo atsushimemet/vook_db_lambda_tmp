@@ -149,21 +149,20 @@ def repeat_dataframe_maker(
 ):
     n_bulk = len(df_no_ng_keyword)
     df_bulk = pd.DataFrame()
-    for n in np.arange(n_bulk):
+    for i, n in enumerate(np.arange(n_bulk)):
         brand_name = df_no_ng_keyword.brand_name[n]
         line_name = df_no_ng_keyword.line_name[n]
         knowledge_name = df_no_ng_keyword.knowledge_name[n]
         query = f"{brand_name} {line_name} {knowledge_name} 中古"
         # query validatorが欲しい　半角1文字をなくす
-
         knowledge_id = df_no_ng_keyword.knowledge_id[n]
-        print("検索キーワード:[" + query + "]", "knowledge_id:", knowledge_id)
+        print(f"{i:03}, 検索キーワード:[" + query + "]", "knowledge_id:", knowledge_id)
         output = DataFrame_maker(query, platform_id, knowledge_id, size_id)
         df_bulk = pd.concat([df_bulk, output], ignore_index=True)
         sleep(sleep_second)
-        break
+        # break
         # 429エラー防止のためのタイムストップ
-    return df_bulk
+    return df_bulk  # TODO:lambda実行でempty dataframe 原因調査から
 
 
 def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_key):
