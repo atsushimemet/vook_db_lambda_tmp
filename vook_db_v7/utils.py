@@ -22,7 +22,7 @@ from vook_db_v7.config import (
     size_id,
     sleep_second,
 )
-from vook_db_v7.local_config import s3_bucket, s3_key
+from vook_db_v7.local_config import s3_bucket, s3_file_name_products_raw_prev
 
 
 def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
@@ -176,7 +176,7 @@ def repeat_dataframe_maker(
     return df_bulk  # TODO:lambda実行でempty dataframe 原因調査から
 
 
-def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_key):
+def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_file_name_products_raw_prev):
     # Lambda環境を識別するための環境変数の存在をチェック
     if "AWS_LAMBDA_FUNCTION_NAME" in os.environ:
         # Lambda環境用のクライアント初期化
@@ -202,23 +202,22 @@ def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_key):
     content_md5 = base64.b64encode(file_hash).decode("utf-8")
     # S3にCSVファイルをアップロード
     s3_client.put_object(
-        Body=csv_binary, Bucket=s3_bucket, Key=s3_key, ContentMD5=content_md5
+        Body=csv_binary,
+        Bucket=s3_bucket,
+        Key=s3_file_name_products_raw_prev,
+        ContentMD5=content_md5,
     )
-    print(f"CSV file uploaded to s3://{s3_bucket}/{s3_key}")
+    print(f"CSV file uploaded to s3://{s3_bucket}/{s3_file_name_products_raw_prev}")
 
 
 def read_csv_from_s3(bucket_name, file_key, profile_name="vook"):
     # Boto3セッションを初期化
     session = boto3.session.Session(profile_name=profile_name)
     s3_client = session.client("s3")
-
     # S3バケットからファイルを読み込む
     response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
-
     # レスポンスからバイナリデータを取得
     file_content = response["Body"].read()
-
     # バイナリデータをPandas DataFrameに変換
     df = pd.read_csv(BytesIO(file_content), encoding="utf-8")
-
     return df

@@ -2,7 +2,7 @@
 # coding: utf-8
 import numpy as np
 
-from vook_db_v7.local_config import s3_bucket
+from vook_db_v7.local_config import s3_bucket, s3_file_name_products_raw_prev
 from vook_db_v7.rds_handler import get_knowledges, get_products, put_products
 from vook_db_v7.tests import run_all_if_checker
 from vook_db_v7.utils import (
@@ -29,7 +29,7 @@ def main(event, context):
     df_bulk = repeat_dataframe_maker(df_no_ng_keyword)
 
     # IDの設定
-    df_prev = read_csv_from_s3(s3_bucket, "lambda_output/test2.csv")
+    df_prev = read_csv_from_s3(s3_bucket, s3_file_name_products_raw_prev)
     nan_arr = np.isnan(df_prev["id"])
     if all(nan_arr):
         df_bulk["id"] = np.arange(1, len(df_bulk) + 1)
@@ -48,6 +48,9 @@ def main(event, context):
     put_products(df_bulk)
     # RDSに保存したデータを確認
     df_from_db = get_products()
+    print("shape:", df_from_db.shape)
+    print("id min:", df_from_db["id"].min())
+    print("id max:", df_from_db["id"].max())
 
 
 if __name__ == "__main__":
