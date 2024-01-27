@@ -83,8 +83,8 @@ def put_products(df_bulk):
             cursor.execute("TRUNCATE TABLE products")
             cursor.execute(create_table_query)
             # DataFrameをRDSのテーブルに挿入
-            for _, row in df_bulk.iterrows():
-                print(row)
+            for i, (_, row) in enumerate(df_bulk.iterrows()):
+                print(f"\r{i+1:03} / {len(df_bulk)}", end="")
                 cursor.execute(
                     insert_query,
                     (
