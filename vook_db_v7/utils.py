@@ -2,6 +2,7 @@ import base64
 import datetime
 import hashlib
 import json
+import os
 import re
 import time
 from io import StringIO
@@ -176,10 +177,16 @@ def repeat_dataframe_maker(
 
 
 def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_key):
-    # S3にアップロードするためのBoto3クライアントを作成
-    # s3_client = boto3.client("s3")
-    session = boto3.session.Session(profile_name="vook")
-    s3_client = session.client("s3")
+    # Lambda環境を識別するための環境変数の存在をチェック
+    if "AWS_LAMBDA_FUNCTION_NAME" in os.environ:
+        # Lambda環境用のクライアント初期化
+        print("Now: Lambda env")
+        s3_client = boto3.client("s3")
+    else:
+        # ローカル開発環境用のクライアント初期化
+        print("Now: Local env")
+        session = boto3.session.Session(profile_name="vook")
+        s3_client = session.client("s3")
     # Pandas DataFrameをCSV形式の文字列に変換
     csv_data = df.to_csv(index=False)
     # 文字列IOを使ってCSVデータを書き込む
