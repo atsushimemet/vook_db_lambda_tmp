@@ -8,3 +8,5 @@ flake8
 isort
 mypy
 pyarrow
+jupyterlab
+jupyterlab_code_formatter
