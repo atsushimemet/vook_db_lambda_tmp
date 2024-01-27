@@ -171,7 +171,6 @@ def repeat_dataframe_maker(
         output = DataFrame_maker(query, platform_id, knowledge_id, size_id)
         df_bulk = pd.concat([df_bulk, output], ignore_index=True)
         sleep(sleep_second)
-        break
         # 429エラー防止のためのタイムストップ
     return df_bulk  # TODO:lambda実行でempty dataframe 原因調査から
 

@@ -38,12 +38,10 @@ def main(event, context):
     else:
         PREV_ID_MAX = df_prev["id"].max()
         df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
-
     run_all_if_checker(df_bulk)
     # df_bulkをs３に保存
     df = df_bulk
     upload_s3(df)
-
     # df_bulkをRDSに保存
     put_products(df_bulk)
     # RDSに保存したデータを確認
