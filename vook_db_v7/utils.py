@@ -176,7 +176,9 @@ def repeat_dataframe_maker(
     return df_bulk  # TODO:lambda実行でempty dataframe 原因調査から
 
 
-def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_file_name_products_raw_prev):
+def upload_s3(
+    df, s3_bucket=s3_bucket, s3_key=s3_file_name_products_raw_prev, profile_name="vook"
+):
     # Lambda環境を識別するための環境変数の存在をチェック
     if "AWS_LAMBDA_FUNCTION_NAME" in os.environ:
         # Lambda環境用のクライアント初期化
@@ -185,7 +187,7 @@ def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_file_name_products_raw_prev):
     else:
         # ローカル開発環境用のクライアント初期化
         print("Now: Local env")
-        session = boto3.session.Session(profile_name="vook")
+        session = boto3.session.Session(profile_name=profile_name)
         s3_client = session.client("s3")
     # Pandas DataFrameをCSV形式の文字列に変換
     csv_data = df.to_csv(index=False)
@@ -219,7 +221,7 @@ def read_csv_from_s3(bucket_name, file_key, profile_name="vook"):
     else:
         # ローカル開発環境用のクライアント初期化
         print("Now: Local env")
-        session = boto3.session.Session(profile_name="vook")
+        session = boto3.session.Session(profile_name=profile_name)
         s3_client = session.client("s3")
     # S3バケットからファイルを読み込む
     response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
