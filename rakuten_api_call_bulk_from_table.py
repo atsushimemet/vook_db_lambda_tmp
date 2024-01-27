@@ -31,13 +31,13 @@ def main(event, context):
     # PREV_ID_MAX = df_prev["id"].max()
     # df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
 
-    # TODO:IDの更新
+    # # TODO:IDの更新
     # df_from_db_prev = get_products()
     # PREV_ID_MAX = df_from_db_prev["id"].max()
     # df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
     # assert df_bulk["id"].min() == df_from_db_prev["id"].max() + 1
 
-    # run_all_if_checker(df_bulk)
+    run_all_if_checker(df_bulk)
     # # df_bulkをs３に保存
     # df = df_bulk
     # upload_s3(df)
