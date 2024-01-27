@@ -3,6 +3,7 @@ import datetime
 import hashlib
 import json
 import re
+import time
 from io import StringIO
 from time import sleep
 
@@ -138,6 +139,18 @@ def create_df_no_ng_keyword(
     return df_no_ng_keyword
 
 
+def time_decorator(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        print(f"{func.__name__}の実行時間: {round(end_time - start_time)}秒")
+        return result
+
+    return wrapper
+
+
+@time_decorator
 def repeat_dataframe_maker(
     df_no_ng_keyword,
     platform_id=platform_id,
