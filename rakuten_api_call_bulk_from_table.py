@@ -43,15 +43,11 @@ def main(event, context):
     # df_bulkをs３に保存
     df = df_bulk
     upload_s3(df)
-    # TODO:s3でIDが前回DBのID+1であること、shapeがdf_bulkのshapeに一致すること
-    # print("s3でIDが前回DBのID+1であること:", df_from_db_prev["id"].max() + 1)
-    # print("shapeがdf_bulkのshapeに一致すること:", df_bulk.shape)
 
-    # # df_bulkをRDSに保存
-    # put_products(df_bulk)
-    # # RDSに保存したデータを確認
-    # df_from_db = get_products()
-    # print(df_from_db.head(), df_from_db.shape)
+    # df_bulkをRDSに保存
+    put_products(df_bulk)
+    # RDSに保存したデータを確認
+    df_from_db = get_products()
 
 
 if __name__ == "__main__":
