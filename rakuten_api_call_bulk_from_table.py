@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import numpy as np
-import pandas as pd
 
+from vook_db_v7.local_config import s3_bucket
 from vook_db_v7.rds_handler import get_knowledges, get_products, put_products
 from vook_db_v7.tests import run_all_if_checker
 from vook_db_v7.utils import (
     create_df_no_ng_keyword,
     create_wort_list,
+    read_csv_from_s3,
     repeat_dataframe_maker,
     upload_s3,
 )
@@ -27,15 +27,12 @@ def main(event, context):
     )
     # df_bulkの作成
     df_bulk = repeat_dataframe_maker(df_no_ng_keyword)
+
+    # IDの設定
+    df_prev = read_csv_from_s3(s3_bucket, "lambda_output/test2.csv")
     # df_prev = pd.read_csv("./data/output/products_raw_prev.csv")
     # PREV_ID_MAX = df_prev["id"].max()
     # df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
-
-    # # TODO:IDの更新
-    # df_from_db_prev = get_products()
-    # PREV_ID_MAX = df_from_db_prev["id"].max()
-    # df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
-    # assert df_bulk["id"].min() == df_from_db_prev["id"].max() + 1
 
     run_all_if_checker(df_bulk)
     # df_bulkをs３に保存
