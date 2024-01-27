@@ -1,1 +1,1 @@
-zip -r vook_db_lambda_rakuten . -x ".env/*" -x ".git/*" -x "*/.DS_Store" -x ".DS_Store" -x "*/.ipynb_checkpoints/*" -x "*/__pycache__/*" -x ".flake8" -x "*.sh" -x "requirements.txt" -x ".gitignore" -x ".python-version" -x "notebook/*" -x "data/output/*"
+zip -r vook_db_lambda_rakuten.zip . -x ".env/*" -x ".git/*" -x "*/.DS_Store" -x ".DS_Store" -x "*/.ipynb_checkpoints/*" -x "*/__pycache__/*" -x ".flake8" -x "*.sh" -x "requirements.txt" -x ".gitignore" -x ".python-version" -x "notebook/*" -x "data/output/*"
