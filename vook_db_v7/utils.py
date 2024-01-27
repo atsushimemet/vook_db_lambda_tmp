@@ -211,9 +211,16 @@ def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_file_name_products_raw_prev):
 
 
 def read_csv_from_s3(bucket_name, file_key, profile_name="vook"):
-    # Boto3セッションを初期化
-    session = boto3.session.Session(profile_name=profile_name)
-    s3_client = session.client("s3")
+    # Lambda環境を識別するための環境変数の存在をチェック
+    if "AWS_LAMBDA_FUNCTION_NAME" in os.environ:
+        # Lambda環境用のクライアント初期化
+        print("Now: Lambda env")
+        s3_client = boto3.client("s3")
+    else:
+        # ローカル開発環境用のクライアント初期化
+        print("Now: Local env")
+        session = boto3.session.Session(profile_name="vook")
+        s3_client = session.client("s3")
     # S3バケットからファイルを読み込む
     response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
     # レスポンスからバイナリデータを取得
