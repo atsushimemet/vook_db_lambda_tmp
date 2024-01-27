@@ -85,22 +85,25 @@ def put_products(df_bulk):
             # DataFrameをRDSのテーブルに挿入
             for i, (_, row) in enumerate(df_bulk.iterrows()):
                 print(f"\r{i+1:03} / {len(df_bulk)}", end="")
-                cursor.execute(
-                    insert_query,
-                    (
-                        row["id"],
-                        row["name"],
-                        row["url"],
-                        row["price"],
-                        row["knowledge_id"],
-                        row["platform_id"],
-                        row["size_id"],
-                        row["created_at"],
-                        row["updated_at"],
-                    ),
-                )
+                try:
+                    cursor.execute(
+                        insert_query,
+                        (
+                            row["id"],
+                            row["name"],
+                            row["url"],
+                            row["price"],
+                            row["knowledge_id"],
+                            row["platform_id"],
+                            row["size_id"],
+                            row["created_at"],
+                            row["updated_at"],
+                        ),
+                    )
+                except pymysql.MySQLError as e:
+                    print(f"Error connecting to MySQL: {e}")
             conn.commit()
-        except pymysql.MySQLError as e:
+        except pymysql.MySQLError as e:  # TODO: 不要なtry-exceptブロックは削除する。現在未検証。
             print(f"Error connecting to MySQL: {e}")
         finally:
             if conn is not None:
