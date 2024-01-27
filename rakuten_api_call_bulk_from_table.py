@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
+import numpy as np
 
 from vook_db_v7.local_config import s3_bucket
 from vook_db_v7.rds_handler import get_knowledges, get_products, put_products
@@ -30,9 +30,14 @@ def main(event, context):
 
     # IDの設定
     df_prev = read_csv_from_s3(s3_bucket, "lambda_output/test2.csv")
-    # df_prev = pd.read_csv("./data/output/products_raw_prev.csv")
-    # PREV_ID_MAX = df_prev["id"].max()
-    # df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
+    nan_arr = np.isnan(df_prev["id"])
+    if all(nan_arr):
+        df_bulk["id"] = np.arange(1, len(df_bulk) + 1)
+    elif any(nan_arr):
+        Exception("一部に欠損が生じているという想定外の事象です。")
+    else:
+        PREV_ID_MAX = df_prev["id"].max()
+        df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
 
     run_all_if_checker(df_bulk)
     # df_bulkをs３に保存
