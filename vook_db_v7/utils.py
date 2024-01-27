@@ -5,7 +5,7 @@ import json
 import os
 import re
 import time
-from io import StringIO
+from io import BytesIO, StringIO
 from time import sleep
 
 import boto3
@@ -205,3 +205,20 @@ def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_key):
         Body=csv_binary, Bucket=s3_bucket, Key=s3_key, ContentMD5=content_md5
     )
     print(f"CSV file uploaded to s3://{s3_bucket}/{s3_key}")
+
+
+def read_csv_from_s3(bucket_name, file_key, profile_name="vook"):
+    # Boto3セッションを初期化
+    session = boto3.session.Session(profile_name=profile_name)
+    s3_client = session.client("s3")
+
+    # S3バケットからファイルを読み込む
+    response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
+
+    # レスポンスからバイナリデータを取得
+    file_content = response["Body"].read()
+
+    # バイナリデータをPandas DataFrameに変換
+    df = pd.read_csv(BytesIO(file_content), encoding="utf-8")
+
+    return df
