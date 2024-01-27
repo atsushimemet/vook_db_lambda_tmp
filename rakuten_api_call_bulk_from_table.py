@@ -38,9 +38,9 @@ def main(event, context):
     # assert df_bulk["id"].min() == df_from_db_prev["id"].max() + 1
 
     run_all_if_checker(df_bulk)
-    # # df_bulkをs３に保存
-    # df = df_bulk
-    # upload_s3(df)
+    # df_bulkをs３に保存
+    df = df_bulk
+    upload_s3(df)
     # TODO:s3でIDが前回DBのID+1であること、shapeがdf_bulkのshapeに一致すること
     # print("s3でIDが前回DBのID+1であること:", df_from_db_prev["id"].max() + 1)
     # print("shapeがdf_bulkのshapeに一致すること:", df_bulk.shape)

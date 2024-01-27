@@ -177,7 +177,9 @@ def repeat_dataframe_maker(
 
 def upload_s3(df, s3_bucket=s3_bucket, s3_key=s3_key):
     # S3にアップロードするためのBoto3クライアントを作成
-    s3_client = boto3.client("s3")
+    # s3_client = boto3.client("s3")
+    session = boto3.session.Session(profile_name="vook")
+    s3_client = session.client("s3")
     # Pandas DataFrameをCSV形式の文字列に変換
     csv_data = df.to_csv(index=False)
     # 文字列IOを使ってCSVデータを書き込む
