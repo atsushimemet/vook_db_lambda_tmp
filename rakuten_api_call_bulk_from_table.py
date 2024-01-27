@@ -25,8 +25,8 @@ def main(event, context):
     df_no_ng_keyword = create_df_no_ng_keyword(
         df_from_db, words_knowledge_name, words_brand_name, words_line_name
     )
-    # # df_bulkの作成
-    # df_bulk = repeat_dataframe_maker(df_no_ng_keyword)
+    # df_bulkの作成
+    df_bulk = repeat_dataframe_maker(df_no_ng_keyword)
     # df_prev = pd.read_csv("./data/output/products_raw_prev.csv")
     # PREV_ID_MAX = df_prev["id"].max()
     # df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
