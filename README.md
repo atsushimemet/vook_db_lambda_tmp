@@ -34,6 +34,15 @@ https://pomblue.hatenablog.com/entry/2021/06/08/230146
 2. 対象のワードリスト作成（ngワードを消す ex. BIG E）
 3. 修正版のテーブルを作成（知識情報の修正）
 4. df_bulkの作成
+   1. repeat_dataframe_makerを実行
+   2. DataFrame_makerの実行
+      1. 設定
+         1. cnt:情報取得対象のページ番号
+         2. df:WANT_LISTでカラムを指定してデータフレームを作成
+         3. req_params["page"]:リクエストパラメータ内のページ番号
+         4. req_params["keyword"]:リクエストパラメータ内のキーワード
+      2. ループ
+      3. 整形
 5. IDの設定
 6. df_bulkをs3に保存
 7. df_bulkをRDSに保存
@@ -41,6 +50,12 @@ https://pomblue.hatenablog.com/entry/2021/06/08/230146
 ## Yahoo - yahoo_api_call_bulk_from_table
 1. 設定値の作成
 2. DataFrame_makerの実行
+   1. 設定
+      1. start_num:取得対象の商品番号
+      2. step:繰り返し処理の間隔
+      3. max_products:商品数の最大値
+      4. l_df:作成したDataFrameを格納するリスト
+   2. ループ
 3. ファイル出力
 ## yahoo_api_call_bulk_from_tableの修正方針
 1. DataFrame_makerを楽天と同じ形式に修正
