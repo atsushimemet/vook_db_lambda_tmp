@@ -124,7 +124,6 @@ def main(event, context):
     df_no_ng_keyword = create_df_no_ng_keyword(
         df_from_db, words_knowledge_name, words_brand_name, words_line_name
     )
-
     platform_id = 2
     # df_bulkの作成
     df_bulk = repeat_dataframe_maker_yahoo(df_no_ng_keyword, platform_id)
