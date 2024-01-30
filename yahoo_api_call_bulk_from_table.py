@@ -22,6 +22,7 @@ from vook_db_v7.utils import (
     create_wort_list,
     read_csv_from_s3,
     time_decorator,
+    upload_s3,
 )
 
 WANT_ITEMS = [
@@ -138,6 +139,9 @@ def main(event, context):
         PREV_ID_MAX = df_prev["id"].max()
         df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
     run_all_if_checker(df_bulk)
+    # df_bulkをs３に保存
+    df = df_bulk
+    upload_s3(df)
 
 
 if __name__ == "__main__":
