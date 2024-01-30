@@ -18,10 +18,11 @@ from vook_db_v7.config import (
     REQ_URL,
     WANT_ITEMS,
     req_params,
+    s3_bucket,
+    s3_file_name_products_raw_prev,
     size_id,
     sleep_second,
 )
-from vook_db_v7.local_config import s3_bucket, s3_file_name_products_raw_prev
 
 
 def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):

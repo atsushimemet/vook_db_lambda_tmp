@@ -2,7 +2,7 @@
 # coding: utf-8
 import numpy as np
 
-from vook_db_v7.local_config import s3_bucket, s3_file_name_products_raw_prev
+from vook_db_v7.config import platform_id, s3_bucket, s3_file_name_products_raw_prev
 from vook_db_v7.rds_handler import get_knowledges, get_products, put_products
 from vook_db_v7.tests import run_all_if_checker
 from vook_db_v7.utils import (
@@ -15,6 +15,7 @@ from vook_db_v7.utils import (
 
 
 def main(event, context):
+    print("Here")
     # 知識情報の取得
     df_from_db = get_knowledges()
     # 対象のワードリスト作成
@@ -25,13 +26,8 @@ def main(event, context):
     df_no_ng_keyword = create_df_no_ng_keyword(
         df_from_db, words_knowledge_name, words_brand_name, words_line_name
     )
-    platform_id = 1
     # df_bulkの作成
     df_bulk = repeat_dataframe_maker(df_no_ng_keyword, platform_id)
-    print(df_bulk.head())
-    import sys
-
-    sys.exit()
     # IDの設定
     df_prev = read_csv_from_s3(s3_bucket, s3_file_name_products_raw_prev)
     nan_arr = np.isnan(df_prev["id"])
@@ -44,15 +40,15 @@ def main(event, context):
         df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
     run_all_if_checker(df_bulk)
     # df_bulkをs３に保存
-    df = df_bulk
-    upload_s3(df)
-    # df_bulkをRDSに保存
-    put_products(df_bulk)
-    # RDSに保存したデータを確認
-    df_from_db = get_products()
-    print("shape:", df_from_db.shape)
-    print("id min:", df_from_db["id"].min())
-    print("id max:", df_from_db["id"].max())
+    upload_s3(df_bulk)
+    # upload_s3(df)
+    # # df_bulkをRDSに保存
+    # put_products(df_bulk)
+    # # RDSに保存したデータを確認
+    # df_from_db = get_products()
+    # print("shape:", df_from_db.shape)
+    # print("id min:", df_from_db["id"].min())
+    # print("id max:", df_from_db["id"].max())
 
 
 if __name__ == "__main__":

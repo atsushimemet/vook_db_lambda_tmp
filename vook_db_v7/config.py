@@ -4,7 +4,6 @@ from vook_db_v7.local_config import CLIENT_ME, pid, sid
 
 # Yahoo
 REQ_URL_CATE = "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch"
-PLATFORM_ID = 2
 BRAND = "リーバイス"
 ITEM = "デニム"
 LINE = "501"
@@ -52,6 +51,9 @@ WANT_ITEMS = [
     "itemUrl",
 ]
 
-platform_id = 1  # 楽天
+platform_id = 2
 size_id = 999
 sleep_second = 1
+
+s3_bucket = "vook-vook"
+s3_file_name_products_raw_prev = f"lambda_output/products_raw_prev_{platform_id}.csv"
