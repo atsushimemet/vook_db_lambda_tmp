@@ -9,9 +9,20 @@ import pandas as pd
 import requests
 
 from vook_db_v7.config import REQ_URL_CATE, size_id, sleep_second
-from vook_db_v7.local_config import ClientId, aff_id
+from vook_db_v7.local_config import (
+    ClientId,
+    aff_id,
+    s3_bucket,
+    s3_file_name_products_raw_prev,
+)
 from vook_db_v7.rds_handler import get_knowledges
-from vook_db_v7.utils import create_df_no_ng_keyword, create_wort_list, time_decorator
+from vook_db_v7.tests import run_all_if_checker
+from vook_db_v7.utils import (
+    create_df_no_ng_keyword,
+    create_wort_list,
+    read_csv_from_s3,
+    time_decorator,
+)
 
 WANT_ITEMS = [
     "id",
@@ -78,7 +89,7 @@ def DataFrame_maker_yahoo(keyword, platform_id, knowledge_id, size_id):
 
 
 @time_decorator
-def repeat_dataframe_maker(
+def repeat_dataframe_maker_yahoo(
     df_no_ng_keyword,
     platform_id,
     size_id=size_id,
@@ -115,8 +126,18 @@ def main(event, context):
 
     platform_id = 2
     # df_bulkの作成
-    df_bulk = repeat_dataframe_maker(df_no_ng_keyword, platform_id)
-    # products_raw.to_csv(f"./data/output/products_raw.csv", index=False)
+    df_bulk = repeat_dataframe_maker_yahoo(df_no_ng_keyword, platform_id)
+    # IDの設定
+    df_prev = read_csv_from_s3(s3_bucket, s3_file_name_products_raw_prev)
+    nan_arr = np.isnan(df_prev["id"])
+    if all(nan_arr):
+        df_bulk["id"] = np.arange(1, len(df_bulk) + 1)
+    elif any(nan_arr):
+        Exception("一部に欠損が生じているという想定外の事象です。")
+    else:
+        PREV_ID_MAX = df_prev["id"].max()
+        df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
+    run_all_if_checker(df_bulk)
 
 
 if __name__ == "__main__":
