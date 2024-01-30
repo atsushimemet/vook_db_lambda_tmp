@@ -16,19 +16,22 @@ import requests
 from vook_db_v7.config import (
     MAX_PAGE,
     REQ_URL,
-    WANT_ITEMS,
+    REQ_URL_CATE,
+    WANT_ITEMS_RAKUTEN,
+    WANT_ITEMS_YAHOO,
     req_params,
     s3_bucket,
     s3_file_name_products_raw_prev,
     size_id,
     sleep_second,
 )
+from vook_db_v7.local_config import ClientId, aff_id
 
 
 def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
     """apiコールした結果からdataframeを出力する関数を定義"""
     cnt = 1
-    df = pd.DataFrame(columns=WANT_ITEMS)
+    df = pd.DataFrame(columns=WANT_ITEMS_RAKUTEN)
     req_params["page"] = cnt
     req_params["keyword"] = keyword
     while True:
@@ -47,7 +50,7 @@ def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
             if res["hits"] == 0:
                 print("返ってきた商品数の数が0なので、ループ終了")
                 break
-            tmp_df = pd.DataFrame(res["Items"])[WANT_ITEMS]
+            tmp_df = pd.DataFrame(res["Items"])[WANT_ITEMS_RAKUTEN]
             df = pd.concat([df, tmp_df], ignore_index=True)
         if cnt == MAX_PAGE:
             print("MAX PAGEに到達したので、ループ終了")
@@ -82,6 +85,57 @@ def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
     df_main["created_at"] = run_time
     df_main["updated_at"] = run_time
     return df_main
+
+
+def DataFrame_maker_yahoo(keyword, platform_id, knowledge_id, size_id):
+    start_num = 1
+    step = 100
+    max_products = 1000
+
+    params = {
+        "appid": ClientId,
+        "output": "json",
+        "query": keyword,
+        "sort": "-price",
+        "affiliate_id": aff_id,
+        "affiliate_type": "vc",
+        "results": 100,  # NOTE: 100個ずつしか取得できない。
+    }
+
+    l_df = []
+    for inc in range(0, max_products, step):
+        params["start"] = start_num + inc
+        df = pd.DataFrame(columns=WANT_ITEMS_YAHOO)
+        res = requests.get(url=REQ_URL_CATE, params=params)
+        res_cd = res.status_code
+        if res_cd != 200:
+            print("Bad request")
+            break
+        else:
+            res = json.loads(res.text)
+            if len(res["hits"]) == 0:
+                print("If the number of returned items is 0, the loop ends.")
+            print("Get Data")
+            l_hit = []
+            for h in res["hits"]:
+                l_hit.append(
+                    (
+                        h["index"],
+                        h["name"],
+                        h["url"],
+                        h["price"],
+                        knowledge_id,
+                        platform_id,
+                        size_id,
+                        # 現在の日付と時刻を取得 & フォーマットを指定して文字列に変換
+                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
+                        # 現在の日付と時刻を取得 & フォーマットを指定して文字列に変換
+                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
+                    )
+                )
+            df = pd.DataFrame(l_hit, columns=WANT_ITEMS_YAHOO)
+            l_df.append(df)
+    return pd.concat(l_df, ignore_index=True)
 
 
 # エラーワードに対して対応表をもとにレスポンスする関数
@@ -174,6 +228,30 @@ def repeat_dataframe_maker(
         break
         # 429エラー防止のためのタイムストップ
     return df_bulk  # TODO:lambda実行でempty dataframe 原因調査から
+
+
+@time_decorator
+def repeat_dataframe_maker_yahoo(
+    df_no_ng_keyword,
+    platform_id,
+    size_id=size_id,
+    sleep_second=sleep_second,
+):
+    n_bulk = len(df_no_ng_keyword)
+    df_bulk = pd.DataFrame()
+    for i, n in enumerate(np.arange(n_bulk)):
+        brand_name = df_no_ng_keyword.brand_name[n]
+        line_name = df_no_ng_keyword.line_name[n]
+        knowledge_name = df_no_ng_keyword.knowledge_name[n]
+        query = f"{brand_name} {line_name} {knowledge_name} 中古"
+        # query validatorが欲しい　半角1文字をなくす
+        knowledge_id = df_no_ng_keyword.knowledge_id[n]
+        print("検索キーワード:[" + query + "]", "knowledge_id:", knowledge_id)
+        output = DataFrame_maker_yahoo(query, platform_id, knowledge_id, size_id)
+        df_bulk = pd.concat([df_bulk, output], ignore_index=True)
+        sleep(sleep_second)
+        break
+    return df_bulk
 
 
 def upload_s3(

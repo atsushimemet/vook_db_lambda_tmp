@@ -45,11 +45,24 @@ req_params = {
     "page": 0,
     "minPrice": 100,
 }
-WANT_ITEMS = [
+WANT_ITEMS_RAKUTEN = [
     "itemName",
     "itemPrice",
     "itemUrl",
 ]
+
+WANT_ITEMS_YAHOO = [
+    "id",
+    "name",
+    "url",
+    "price",
+    "knowledge_id",
+    "platform_id",
+    "size_id",
+    "created_at",
+    "updated_at",
+]
+
 
 platform_id = 2
 size_id = 999
