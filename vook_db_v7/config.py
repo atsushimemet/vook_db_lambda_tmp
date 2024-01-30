@@ -23,16 +23,6 @@ COL_NAMES = [
 ]
 
 aff_id = f"//ck.jp.ap.valuecommerce.com/servlet/referral?vs={sid}&vp={pid}&vc_url="
-query = f"{BRAND} ヴィンテージ {ITEM} {LINE} {KNOWLEDGE}"
-params = {
-    "appid": ClientId,
-    "output": "json",
-    "query": query,
-    "sort": "-price",
-    "affiliate_id": aff_id,
-    "affiliate_type": "vc",
-    "results": 100,  # NOTE: 100個ずつしか取得できない。
-}
 run_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
 start_num = 1

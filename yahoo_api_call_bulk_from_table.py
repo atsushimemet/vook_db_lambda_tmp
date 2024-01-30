@@ -2,13 +2,16 @@
 # coding: utf-8
 import datetime
 import json
+from time import sleep
 
+import numpy as np
 import pandas as pd
 import requests
 
-from vook_db_v7.config import KNOWLEDGE_ID, PLATFORM_ID, REQ_URL_CATE, query
+from vook_db_v7.config import REQ_URL_CATE, size_id, sleep_second
 from vook_db_v7.local_config import ClientId, aff_id
-from vook_db_v7.utils import time_decorator
+from vook_db_v7.rds_handler import get_knowledges
+from vook_db_v7.utils import create_df_no_ng_keyword, create_wort_list, time_decorator
 
 WANT_ITEMS = [
     "id",
@@ -22,22 +25,22 @@ WANT_ITEMS = [
     "updated_at",
 ]
 
-params = {
-    "appid": ClientId,
-    "output": "json",
-    "query": query,
-    "sort": "-price",
-    "affiliate_id": aff_id,
-    "affiliate_type": "vc",
-    "results": 100,  # NOTE: 100個ずつしか取得できない。
-}
 
-
-@time_decorator
-def DataFrame_maker_yahoo():
+def DataFrame_maker_yahoo(keyword, platform_id, knowledge_id, size_id):
     start_num = 1
     step = 100
     max_products = 1000
+
+    params = {
+        "appid": ClientId,
+        "output": "json",
+        "query": keyword,
+        "sort": "-price",
+        "affiliate_id": aff_id,
+        "affiliate_type": "vc",
+        "results": 100,  # NOTE: 100個ずつしか取得できない。
+    }
+
     l_df = []
     for inc in range(0, max_products, step):
         params["start"] = start_num + inc
@@ -60,9 +63,9 @@ def DataFrame_maker_yahoo():
                         h["name"],
                         h["url"],
                         h["price"],
-                        KNOWLEDGE_ID,
-                        PLATFORM_ID,
-                        "",
+                        knowledge_id,
+                        platform_id,
+                        size_id,
                         # 現在の日付と時刻を取得 & フォーマットを指定して文字列に変換
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
                         # 現在の日付と時刻を取得 & フォーマットを指定して文字列に変換
@@ -71,11 +74,50 @@ def DataFrame_maker_yahoo():
                 )
             df = pd.DataFrame(l_hit, columns=WANT_ITEMS)
             l_df.append(df)
-    return l_df
+    return pd.concat(l_df, ignore_index=True)
 
 
-l_df = DataFrame_maker_yahoo()
-products_raw = pd.concat(l_df, axis=0, ignore_index=True)
-print(products_raw.shape)
-print(products_raw.head())
-# products_raw.to_csv(f"./data/output/products_raw.csv", index=False)
+@time_decorator
+def repeat_dataframe_maker(
+    df_no_ng_keyword,
+    platform_id,
+    size_id=size_id,
+    sleep_second=sleep_second,
+):
+    n_bulk = len(df_no_ng_keyword)
+    df_bulk = pd.DataFrame()
+    for i, n in enumerate(np.arange(n_bulk)):
+        brand_name = df_no_ng_keyword.brand_name[n]
+        line_name = df_no_ng_keyword.line_name[n]
+        knowledge_name = df_no_ng_keyword.knowledge_name[n]
+        query = f"{brand_name} {line_name} {knowledge_name} 中古"
+        # query validatorが欲しい　半角1文字をなくす
+        knowledge_id = df_no_ng_keyword.knowledge_id[n]
+        print("検索キーワード:[" + query + "]", "knowledge_id:", knowledge_id)
+        output = DataFrame_maker_yahoo(query, platform_id, knowledge_id, size_id)
+        df_bulk = pd.concat([df_bulk, output], ignore_index=True)
+        sleep(sleep_second)
+        break
+    return df_bulk
+
+
+def main(event, context):
+    # 知識情報の取得
+    df_from_db = get_knowledges()
+    # 対象のワードリスト作成
+    words_brand_name = create_wort_list(df_from_db, "brand")
+    words_line_name = create_wort_list(df_from_db, "line")
+    words_knowledge_name = create_wort_list(df_from_db, "knowledge")
+    # 修正版のテーブルを作成
+    df_no_ng_keyword = create_df_no_ng_keyword(
+        df_from_db, words_knowledge_name, words_brand_name, words_line_name
+    )
+
+    platform_id = 2
+    # df_bulkの作成
+    df_bulk = repeat_dataframe_maker(df_no_ng_keyword, platform_id)
+    # products_raw.to_csv(f"./data/output/products_raw.csv", index=False)
+
+
+if __name__ == "__main__":
+    main(1, 1)
