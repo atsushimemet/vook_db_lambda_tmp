@@ -25,9 +25,13 @@ def main(event, context):
     df_no_ng_keyword = create_df_no_ng_keyword(
         df_from_db, words_knowledge_name, words_brand_name, words_line_name
     )
+    platform_id = 1
     # df_bulkの作成
-    df_bulk = repeat_dataframe_maker(df_no_ng_keyword)
+    df_bulk = repeat_dataframe_maker(df_no_ng_keyword, platform_id)
+    print(df_bulk.head())
+    import sys
 
+    sys.exit()
     # IDの設定
     df_prev = read_csv_from_s3(s3_bucket, s3_file_name_products_raw_prev)
     nan_arr = np.isnan(df_prev["id"])

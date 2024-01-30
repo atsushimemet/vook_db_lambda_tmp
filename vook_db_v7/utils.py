@@ -17,7 +17,6 @@ from vook_db_v7.config import (
     MAX_PAGE,
     REQ_URL,
     WANT_ITEMS,
-    platform_id,
     req_params,
     size_id,
     sleep_second,
@@ -154,7 +153,7 @@ def time_decorator(func):
 @time_decorator
 def repeat_dataframe_maker(
     df_no_ng_keyword,
-    platform_id=platform_id,
+    platform_id,
     size_id=size_id,
     sleep_second=sleep_second,
 ):
@@ -171,6 +170,7 @@ def repeat_dataframe_maker(
         output = DataFrame_maker(query, platform_id, knowledge_id, size_id)
         df_bulk = pd.concat([df_bulk, output], ignore_index=True)
         sleep(sleep_second)
+        break
         # 429エラー防止のためのタイムストップ
     return df_bulk  # TODO:lambda実行でempty dataframe 原因調査から
 
