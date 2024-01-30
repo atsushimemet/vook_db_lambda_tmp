@@ -1,6 +1,6 @@
 import datetime
 
-from vook_db_v7.local_config import CLIENT_ME, ClientId, pid, sid
+from vook_db_v7.local_config import CLIENT_ME, pid, sid
 
 # Yahoo
 REQ_URL_CATE = "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch"
