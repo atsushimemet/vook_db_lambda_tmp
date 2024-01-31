@@ -64,7 +64,7 @@ WANT_ITEMS_YAHOO = [
 ]
 
 
-platform_id = 1
+platform_id = 2
 size_id = 999
 sleep_second = 1
 
