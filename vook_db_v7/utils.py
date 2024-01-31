@@ -28,7 +28,7 @@ from vook_db_v7.config import (
 from vook_db_v7.local_config import ClientId, aff_id
 
 
-def DataFrame_maker(keyword, platform_id, knowledge_id, size_id):
+def DataFrame_maker_rakuten(keyword, platform_id, knowledge_id, size_id):
     """apiコールした結果からdataframeを出力する関数を定義"""
     cnt = 1
     df = pd.DataFrame(columns=WANT_ITEMS_RAKUTEN)
@@ -209,6 +209,7 @@ def time_decorator(func):
 def repeat_dataframe_maker(
     df_no_ng_keyword,
     platform_id,
+    func,
     size_id=size_id,
     sleep_second=sleep_second,
 ):
@@ -222,7 +223,7 @@ def repeat_dataframe_maker(
         # query validatorが欲しい　半角1文字をなくす
         knowledge_id = df_no_ng_keyword.knowledge_id[n]
         print(f"{i:03}, 検索キーワード:[" + query + "]", "knowledge_id:", knowledge_id)
-        output = DataFrame_maker(query, platform_id, knowledge_id, size_id)
+        output = func(query, platform_id, knowledge_id, size_id)
         df_bulk = pd.concat([df_bulk, output], ignore_index=True)
         sleep(sleep_second)
         break
@@ -230,28 +231,29 @@ def repeat_dataframe_maker(
     return df_bulk  # TODO:lambda実行でempty dataframe 原因調査から
 
 
-@time_decorator
-def repeat_dataframe_maker_yahoo(
-    df_no_ng_keyword,
-    platform_id,
-    size_id=size_id,
-    sleep_second=sleep_second,
-):
-    n_bulk = len(df_no_ng_keyword)
-    df_bulk = pd.DataFrame()
-    for i, n in enumerate(np.arange(n_bulk)):
-        brand_name = df_no_ng_keyword.brand_name[n]
-        line_name = df_no_ng_keyword.line_name[n]
-        knowledge_name = df_no_ng_keyword.knowledge_name[n]
-        query = f"{brand_name} {line_name} {knowledge_name} 中古"
-        # query validatorが欲しい　半角1文字をなくす
-        knowledge_id = df_no_ng_keyword.knowledge_id[n]
-        print("検索キーワード:[" + query + "]", "knowledge_id:", knowledge_id)
-        output = DataFrame_maker_yahoo(query, platform_id, knowledge_id, size_id)
-        df_bulk = pd.concat([df_bulk, output], ignore_index=True)
-        sleep(sleep_second)
-        break
-    return df_bulk
+# @time_decorator
+# def repeat_dataframe_maker_yahoo(
+#     df_no_ng_keyword,
+#     platform_id,
+#     func,
+#     size_id=size_id,
+#     sleep_second=sleep_second,
+# ):
+#     n_bulk = len(df_no_ng_keyword)
+#     df_bulk = pd.DataFrame()
+#     for i, n in enumerate(np.arange(n_bulk)):
+#         brand_name = df_no_ng_keyword.brand_name[n]
+#         line_name = df_no_ng_keyword.line_name[n]
+#         knowledge_name = df_no_ng_keyword.knowledge_name[n]
+#         query = f"{brand_name} {line_name} {knowledge_name} 中古"
+#         # query validatorが欲しい　半角1文字をなくす
+#         knowledge_id = df_no_ng_keyword.knowledge_id[n]
+#         print("検索キーワード:[" + query + "]", "knowledge_id:", knowledge_id)
+#         output = func(query, platform_id, knowledge_id, size_id)
+#         df_bulk = pd.concat([df_bulk, output], ignore_index=True)
+#         sleep(sleep_second)
+#         break
+#     return df_bulk
 
 
 def upload_s3(

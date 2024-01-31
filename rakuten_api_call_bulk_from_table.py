@@ -6,6 +6,7 @@ from vook_db_v7.config import platform_id, s3_bucket, s3_file_name_products_raw_
 from vook_db_v7.rds_handler import get_knowledges, get_products, put_products
 from vook_db_v7.tests import run_all_if_checker
 from vook_db_v7.utils import (
+    DataFrame_maker_rakuten,
     create_df_no_ng_keyword,
     create_wort_list,
     read_csv_from_s3,
@@ -27,7 +28,9 @@ def main(event, context):
         df_from_db, words_knowledge_name, words_brand_name, words_line_name
     )
     # df_bulkの作成
-    df_bulk = repeat_dataframe_maker(df_no_ng_keyword, platform_id)
+    df_bulk = repeat_dataframe_maker(
+        df_no_ng_keyword, platform_id, DataFrame_maker_rakuten
+    )
     # IDの設定
     df_prev = read_csv_from_s3(s3_bucket, s3_file_name_products_raw_prev)
     nan_arr = np.isnan(df_prev["id"])

@@ -65,4 +65,6 @@ https://pomblue.hatenablog.com/entry/2021/06/08/230146
 5. その他共通処理作成
 ## 共通処理検討
 1. 設計
-2. next
+   1. 共通のrepeat_dataframe_makerを利用する。
+      1. 楽天
+      2. Yahoo
