@@ -26,6 +26,7 @@ from vook_db_v7.config import (
     sleep_second,
 )
 from vook_db_v7.local_config import ClientId, aff_id
+from vook_db_v7.rds_handler import get_knowledges
 
 
 def DataFrame_maker_rakuten(keyword, platform_id, knowledge_id, size_id):
@@ -285,3 +286,17 @@ def read_csv_from_s3(bucket_name, file_key, profile_name="vook"):
     # バイナリデータをPandas DataFrameに変換
     df = pd.read_csv(BytesIO(file_content), encoding="utf-8")
     return df
+
+
+def create_api_input() -> pd.DataFrame:
+    # 知識情報の取得
+    df_from_db = get_knowledges()
+    # 対象のワードリスト作成
+    words_brand_name = create_wort_list(df_from_db, "brand")
+    words_line_name = create_wort_list(df_from_db, "line")
+    words_knowledge_name = create_wort_list(df_from_db, "knowledge")
+    # 修正版のテーブルを作成
+    df_api_input = create_df_no_ng_keyword(
+        df_from_db, words_knowledge_name, words_brand_name, words_line_name
+    )
+    return df_api_input

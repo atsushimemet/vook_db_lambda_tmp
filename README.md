@@ -68,3 +68,4 @@ https://pomblue.hatenablog.com/entry/2021/06/08/230146
    1. 共通のrepeat_dataframe_makerを利用する。
       1. 楽天
       2. Yahoo
+   2. 知識情報の取得処理を共通処理にする。
