@@ -4,13 +4,11 @@
 import numpy as np
 
 from vook_db_v7.config import platform_id, s3_bucket, s3_file_name_products_raw_prev
-from vook_db_v7.rds_handler import get_knowledges, get_products, put_products
+from vook_db_v7.rds_handler import get_products, put_products
 from vook_db_v7.tests import run_all_if_checker
 from vook_db_v7.utils import (
     DataFrame_maker_yahoo,
     create_api_input,
-    create_df_no_ng_keyword,
-    create_wort_list,
     read_csv_from_s3,
     repeat_dataframe_maker,
     upload_s3,
