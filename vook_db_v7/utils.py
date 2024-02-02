@@ -13,15 +13,14 @@ import numpy as np
 import pandas as pd
 import requests
 
+from vook_db_v7.config import MAX_PAGE  # s3_file_name_products_raw_prev,
 from vook_db_v7.config import (
-    MAX_PAGE,
     REQ_URL,
     REQ_URL_CATE,
     WANT_ITEMS_RAKUTEN,
     WANT_ITEMS_YAHOO,
     req_params,
     s3_bucket,
-    s3_file_name_products_raw_prev,
     size_id,
     sleep_second,
 )
@@ -136,7 +135,10 @@ def DataFrame_maker_yahoo(keyword, platform_id, knowledge_id, size_id):
                 )
             df = pd.DataFrame(l_hit, columns=WANT_ITEMS_YAHOO)
             l_df.append(df)
-    return pd.concat(l_df, ignore_index=True)
+    if not l_df:
+        print("no df")
+    else:
+        return pd.concat(l_df, ignore_index=True)
 
 
 # エラーワードに対して対応表をもとにレスポンスする関数
@@ -227,13 +229,12 @@ def repeat_dataframe_maker(
         output = func(query, platform_id, knowledge_id, size_id)
         df_bulk = pd.concat([df_bulk, output], ignore_index=True)
         sleep(sleep_second)
-        break
         # 429エラー防止のためのタイムストップ
     return df_bulk  # TODO:lambda実行でempty dataframe 原因調査から
 
 
 def upload_s3(
-    df, s3_bucket=s3_bucket, s3_key=s3_file_name_products_raw_prev, profile_name="vook"
+    df, s3_file_name_products_raw_prev, s3_bucket=s3_bucket, profile_name="vook"
 ):
     # Lambda環境を識別するための環境変数の存在をチェック
     if "AWS_LAMBDA_FUNCTION_NAME" in os.environ:
@@ -304,8 +305,8 @@ def create_api_input() -> pd.DataFrame:
 
 def set_id(
     df_bulk: pd.DataFrame,
+    s3_file_name_products_raw_prev: str,
     s3_bucket: str = s3_bucket,
-    s3_file_name_products_raw_prev: str = s3_file_name_products_raw_prev,
 ):
     """IDの設定"""
     df_prev = read_csv_from_s3(s3_bucket, s3_file_name_products_raw_prev)
