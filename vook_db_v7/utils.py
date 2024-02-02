@@ -300,3 +300,21 @@ def create_api_input() -> pd.DataFrame:
         df_from_db, words_knowledge_name, words_brand_name, words_line_name
     )
     return df_api_input
+
+
+def set_id(
+    df_bulk: pd.DataFrame,
+    s3_bucket: str = s3_bucket,
+    s3_file_name_products_raw_prev: str = s3_file_name_products_raw_prev,
+):
+    """IDの設定"""
+    df_prev = read_csv_from_s3(s3_bucket, s3_file_name_products_raw_prev)
+    nan_arr = np.isnan(df_prev["id"])
+    if all(nan_arr):
+        df_bulk["id"] = np.arange(1, len(df_bulk) + 1)
+    elif any(nan_arr):
+        Exception("一部に欠損が生じているという想定外の事象です。")
+    else:
+        PREV_ID_MAX = df_prev["id"].max()
+        df_bulk["id"] = np.arange(PREV_ID_MAX, PREV_ID_MAX + len(df_bulk)) + 1
+    return df_bulk
