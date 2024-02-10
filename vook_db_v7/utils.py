@@ -5,6 +5,7 @@ import json
 import os
 import re
 import time
+import urllib
 from io import BytesIO, StringIO
 from time import sleep
 
@@ -87,6 +88,11 @@ def DataFrame_maker_rakuten(keyword, platform_id, knowledge_id, size_id):
     return df_main
 
 
+def create_url_yahoo(aff_url):
+    """アフィリエイトURLがリンク切れのため一時的に素のURLを返す"""
+    return urllib.parse.unquote(aff_url.split("vc_url=")[1])
+
+
 def DataFrame_maker_yahoo(keyword, platform_id, knowledge_id, size_id):
     start_num = 1
     step = 100
@@ -122,7 +128,7 @@ def DataFrame_maker_yahoo(keyword, platform_id, knowledge_id, size_id):
                     (
                         h["index"],
                         h["name"],
-                        h["url"],
+                        create_url_yahoo(h["url"]),
                         h["price"],
                         knowledge_id,
                         platform_id,
@@ -229,7 +235,8 @@ def repeat_dataframe_maker(
         output = func(query, platform_id, knowledge_id, size_id)
         df_bulk = pd.concat([df_bulk, output], ignore_index=True)
         sleep(sleep_second)
-        # 429エラー防止のためのタイムストップ
+        # 開発環境では、1知識で試す
+        # break
     return df_bulk  # TODO:lambda実行でempty dataframe 原因調査から
 
 
