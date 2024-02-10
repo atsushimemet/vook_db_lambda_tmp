@@ -5,3 +5,4 @@ __pycache__/
 notebook/.ipynb_checkpoints
 vook_db_v7/sql/.ipynb_checkpoints
 data/output/
+.ipynb_checkpoints/
