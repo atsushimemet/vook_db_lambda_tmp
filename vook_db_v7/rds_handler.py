@@ -46,7 +46,11 @@ def get_knowledges():
             )
             cursor = conn.cursor()
             cursor.execute(query)
-            for row in cursor:  # column1, column2, ...は取得したいカラム名に合わせて変更してください
+            for (
+                row
+            ) in (
+                cursor
+            ):  # column1, column2, ...は取得したいカラム名に合わせて変更してください
                 df_from_db = pd.concat(
                     [df_from_db, pd.DataFrame([row])], ignore_index=True
                 )
@@ -103,7 +107,9 @@ def put_products(df_bulk):
                 except pymysql.MySQLError as e:
                     print(f"Error connecting to MySQL: {e}")
             conn.commit()
-        except pymysql.MySQLError as e:  # TODO: 不要なtry-exceptブロックは削除する。現在未検証。
+        except (
+            pymysql.MySQLError
+        ) as e:  # TODO: 不要なtry-exceptブロックは削除する。現在未検証。
             print(f"Error connecting to MySQL: {e}")
         finally:
             if conn is not None:
@@ -132,7 +138,11 @@ def get_products():
             )
             cursor = conn.cursor()
             cursor.execute(query)
-            for row in cursor:  # column1, column2, ...は取得したいカラム名に合わせて変更してください
+            for (
+                row
+            ) in (
+                cursor
+            ):  # column1, column2, ...は取得したいカラム名に合わせて変更してください
                 df_from_db = pd.concat(
                     [df_from_db, pd.DataFrame([row])], ignore_index=True
                 )
