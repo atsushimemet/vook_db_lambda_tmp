@@ -3,7 +3,6 @@
 
 import pandas as pd
 
-# from vook_db_v7.config import platform_id
 from vook_db_v7.rds_handler import get_products, put_products
 from vook_db_v7.tests import run_all_if_checker
 from vook_db_v7.utils import (
