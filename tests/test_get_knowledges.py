@@ -26,3 +26,11 @@ def test_get_knowledges_right_IF_columns_name():
     actual = df_from_db.columns.tolist()
     expected = ["knowledge_id", "knowledge_name", "brand_name", "line_name"]
     assert actual == expected
+
+
+def test_get_knowledges_right_IF_columns_type():
+    right_config = get_ec2_config()
+    df_from_db = get_knowledges(right_config)
+    actual = [v.name for v in df_from_db.dtypes.values]
+    expected = ["int64", "object", "object", "object"]
+    assert actual == expected
