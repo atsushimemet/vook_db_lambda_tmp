@@ -3,6 +3,7 @@ import pytest
 
 from vook_db_v7.local_config import SSH_PKEY_PATH, get_ec2_config
 from vook_db_v7.rds_handler import get_knowledges
+from vook_db_v7.utils import validate_input
 
 
 class TestGetKnowledgesInvalid:
@@ -53,3 +54,10 @@ class TestGetKnowledgesValid:
 
     def test_len_df(self):
         assert len(self.df)
+
+
+def test_validate_input_valid():
+    word = "66前期"
+    actual = validate_input(word)
+    expected = word
+    assert actual == expected
