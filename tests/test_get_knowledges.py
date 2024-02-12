@@ -61,3 +61,10 @@ def test_validate_input_valid():
     actual = validate_input(word)
     expected = word
     assert actual == expected
+
+
+def test_validate_input_invalid():
+    word = "BIG E"
+    actual = validate_input(word)
+    expected = "BIGE"
+    assert actual == expected
