@@ -39,3 +39,9 @@ class TestGetKnowledgesValid:
         actual = [dtype.name for dtype in self.df.dtypes.values]
         expected = ["int64", "object", "object", "object"]
         assert actual == expected
+
+    def test_columns_notnull(self):
+        actual = all([not boolian for boolian in self.df.isnull().any()])
+        # NOTE:全カラム一つでも欠損あるか-No-False-全部FalseでOK
+        expected = True
+        assert actual == expected
