@@ -20,17 +20,21 @@ def test_not_get_knowledges_wrong_end_point():
         get_knowledges(wrong_config)
 
 
-def test_get_knowledges_right_IF_columns_name():
+@pytest.fixture(scope="class")
+def df_knowledge_brand_line(request):
     right_config = get_ec2_config()
-    df_from_db = get_knowledges(right_config)
-    actual = df_from_db.columns.tolist()
-    expected = ["knowledge_id", "knowledge_name", "brand_name", "line_name"]
-    assert actual == expected
+    df = get_knowledges(right_config)
+    request.cls.df = df  # クラス変数としてデータフレームを設定
 
 
-def test_get_knowledges_right_IF_columns_type():
-    right_config = get_ec2_config()
-    df_from_db = get_knowledges(right_config)
-    actual = [v.name for v in df_from_db.dtypes.values]
-    expected = ["int64", "object", "object", "object"]
-    assert actual == expected
+@pytest.mark.usefixtures("df_knowledge_brand_line")
+class TestGetKnowledgesRight:
+    def test_columns_name(self):
+        actual = self.df.columns.tolist()
+        expected = ["knowledge_id", "knowledge_name", "brand_name", "line_name"]
+        assert actual == expected
+
+    def test_columns_type(self):
+        actual = [dtype.name for dtype in self.df.dtypes.values]
+        expected = ["int64", "object", "object", "object"]
+        assert actual == expected
