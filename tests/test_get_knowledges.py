@@ -45,3 +45,8 @@ class TestGetKnowledgesValid:
         # NOTE:全カラム一つでも欠損あるか-No-False-全部FalseでOK
         expected = True
         assert actual == expected
+
+    def test_columns_pk_unique(self):
+        actual = self.df["knowledge_id"].nunique()
+        expected = self.df.shape[0]
+        assert actual == expected
