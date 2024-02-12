@@ -1,7 +1,7 @@
 import pymysql
 import pytest
 
-from vook_db_v7.local_config import SSH_PKEY_PATH
+from vook_db_v7.local_config import SSH_PKEY_PATH, get_ec2_config
 from vook_db_v7.rds_handler import get_knowledges
 
 
@@ -18,3 +18,11 @@ def test_not_get_knowledges_wrong_end_point():
     msg = "Lost connection to MySQL server during query"
     with pytest.raises(pymysql.MySQLError, match=rf".*{msg}.*"):
         get_knowledges(wrong_config)
+
+
+def test_get_knowledges_right_IF_columns_name():
+    right_config = get_ec2_config()
+    df_from_db = get_knowledges(right_config)
+    actual = df_from_db.columns.tolist()
+    expected = ["knowledge_id", "knowledge_name", "brand_name", "line_name"]
+    assert actual == expected
