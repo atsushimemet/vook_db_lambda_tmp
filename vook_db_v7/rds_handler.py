@@ -3,7 +3,6 @@ import pymysql
 from sshtunnel import SSHTunnelForwarder
 
 from vook_db_v7.local_config import (
-    get_ec2_config,
     get_rds_config,
     get_rds_config_for_put,
     put_ec2_config,
@@ -26,7 +25,6 @@ def read_sql_file(file_path):
 
 
 def get_knowledges(config_ec2):
-    # config_ec2 = get_ec2_config()
     query = read_sql_file("./vook_db_v7/sql/knowledges.sql")
     df_from_db = pd.DataFrame()
     with SSHTunnelForwarder(
