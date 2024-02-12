@@ -50,3 +50,6 @@ class TestGetKnowledgesValid:
         actual = self.df["knowledge_id"].nunique()
         expected = self.df.shape[0]
         assert actual == expected
+
+    def test_len_df(self):
+        assert len(self.df)
