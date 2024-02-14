@@ -57,18 +57,18 @@ class TestGetKnowledgesValid:
         assert len(self.df)
 
 
-def test_validate_input_valid():
-    word = "66前期"
-    actual = validate_input(word)
-    expected = word
-    assert actual == expected
+class TestValidateInput:
+    def test_valid(self):
+        word = "66前期"
+        actual = validate_input(word)
+        expected = word
+        assert actual == expected
 
-
-def test_validate_input_invalid():
-    word = "BIG E"
-    actual = validate_input(word)
-    expected = "BIGE"
-    assert actual == expected
+    def test_invalid(self):
+        word = "BIG E"
+        actual = validate_input(word)
+        expected = "BIGE"
+        assert actual == expected
 
 
 def test_convertor_valid_converted():
