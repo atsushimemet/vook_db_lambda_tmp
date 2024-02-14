@@ -71,9 +71,18 @@ def test_validate_input_invalid():
     assert actual == expected
 
 
-def test_convertor_valid():
+def test_convertor_valid_converted():
     word_bfr = "BIG E"
     word_aft = "BIGE"
+    ng_ok_table = pd.read_csv("./data/input/query_ng_ok.csv")
+    actual = convertor(word_bfr, ng_ok_table)
+    expected = word_aft
+    assert actual == expected
+
+
+def test_convertor_valid_not_converted():
+    word_bfr = "66前期"
+    word_aft = "66前期"
     ng_ok_table = pd.read_csv("./data/input/query_ng_ok.csv")
     actual = convertor(word_bfr, ng_ok_table)
     expected = word_aft
