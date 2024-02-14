@@ -4,7 +4,7 @@ import pytest
 
 from vook_db_v7.local_config import SSH_PKEY_PATH, get_ec2_config
 from vook_db_v7.rds_handler import get_knowledges
-from vook_db_v7.utils import convertor, validate_input
+from vook_db_v7.utils import convertor, create_wort_list, validate_input
 
 
 class TestGetKnowledgesInvalid:
@@ -87,3 +87,46 @@ class TestConvertorValid:
         actual = convertor(word_bfr, ng_ok_table)
         expected = word_aft
         assert actual == expected
+
+
+@pytest.fixture(scope="class")
+def df_no_ng_keyword(request):
+    config_ec2 = get_ec2_config()
+    df_from_db = get_knowledges(config_ec2)
+    # 対象のワードリスト作成
+    words_brand_name = create_wort_list(df_from_db, "brand")
+    words_line_name = create_wort_list(df_from_db, "line")
+    words_knowledge_name = create_wort_list(df_from_db, "knowledge")
+    df_no_ng_keyword = pd.DataFrame(columns=df_from_db.columns)
+    df_no_ng_keyword["knowledge_id"] = df_from_db["knowledge_id"].values
+    df_no_ng_keyword["knowledge_name"] = words_knowledge_name
+    df_no_ng_keyword["brand_name"] = words_brand_name
+    df_no_ng_keyword["line_name"] = words_line_name
+    request.cls.df = df_no_ng_keyword
+
+
+@pytest.mark.usefixtures("df_no_ng_keyword")
+class TestDataframeNoNgKeyword:
+    def test_columns_name(self):
+        actual = self.df.columns.tolist()
+        expected = ["knowledge_id", "knowledge_name", "brand_name", "line_name"]
+        assert actual == expected
+
+    def test_columns_type(self):
+        actual = [dtype.name for dtype in self.df.dtypes.values]
+        expected = ["int64", "object", "object", "object"]
+        assert actual == expected
+
+    def test_columns_notnull(self):
+        actual = all([not boolian for boolian in self.df.isnull().any()])
+        # NOTE:全カラム一つでも欠損あるか-No-False-全部FalseでOK
+        expected = True
+        assert actual == expected
+
+    def test_columns_pk_unique(self):
+        actual = self.df["knowledge_id"].nunique()
+        expected = self.df.shape[0]
+        assert actual == expected
+
+    def test_len_df(self):
+        assert len(self.df)
