@@ -148,7 +148,7 @@ def DataFrame_maker_yahoo(keyword, platform_id, knowledge_id, size_id):
 
 
 # エラーワードに対して対応表をもとにレスポンスする関数
-def convertor(input_string, ng_ok_table):
+def convertor(input_string: str, ng_ok_table: pd.DataFrame) -> str:
     # 特定のワードが DataFrame に含まれているかどうかを確認し、行番号を表示
     row_indices = ng_ok_table.index[
         ng_ok_table.apply(lambda row: input_string in row.values, axis=1)
