@@ -1,1 +1,1 @@
-zip -r vook_db_lambda_rakuten.zip . -x ".env/*" -x ".git/*"
+zip -r data/output/vook_db_lambda_rakuten.zip . -x ".env/*" -x ".git/*" -x ".mypy_cache/*" -x ".pytest_cache/*" -x "notebook/*" -x "shell/*" -x "tests/*" -x "*/.ipynb_checkpoints/*" -x "*/__pycache__/*" -x ".flake8" -x ".gitignore" -x ".python-version" -x "*.DS_Store" -x "mypy.ini" -x "README.md" -x "requirements.txt" -x ""
