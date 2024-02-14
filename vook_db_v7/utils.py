@@ -25,7 +25,7 @@ from vook_db_v7.config import (
     size_id,
     sleep_second,
 )
-from vook_db_v7.local_config import ClientId, aff_id
+from vook_db_v7.local_config import ClientId, aff_id, get_ec2_config
 from vook_db_v7.rds_handler import get_knowledges
 
 
@@ -148,7 +148,7 @@ def DataFrame_maker_yahoo(keyword, platform_id, knowledge_id, size_id):
 
 
 # エラーワードに対して対応表をもとにレスポンスする関数
-def convertor(input_string, ng_ok_table):
+def convertor(input_string: str, ng_ok_table: pd.DataFrame) -> str:
     # 特定のワードが DataFrame に含まれているかどうかを確認し、行番号を表示
     row_indices = ng_ok_table.index[
         ng_ok_table.apply(lambda row: input_string in row.values, axis=1)
@@ -298,7 +298,8 @@ def read_csv_from_s3(bucket_name, file_key, profile_name="vook"):
 
 def create_api_input() -> pd.DataFrame:
     # 知識情報の取得
-    df_from_db = get_knowledges()
+    config_ec2 = get_ec2_config()
+    df_from_db = get_knowledges(config_ec2)
     # 対象のワードリスト作成
     words_brand_name = create_wort_list(df_from_db, "brand")
     words_line_name = create_wort_list(df_from_db, "line")

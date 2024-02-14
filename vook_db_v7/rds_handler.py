@@ -3,7 +3,6 @@ import pymysql
 from sshtunnel import SSHTunnelForwarder
 
 from vook_db_v7.local_config import (
-    get_ec2_config,
     get_rds_config,
     get_rds_config_for_put,
     put_ec2_config,
@@ -25,8 +24,7 @@ def read_sql_file(file_path):
         return f"Error reading file: {e}"
 
 
-def get_knowledges():
-    config_ec2 = get_ec2_config()
+def get_knowledges(config_ec2):
     query = read_sql_file("./vook_db_v7/sql/knowledges.sql")
     df_from_db = pd.DataFrame()
     with SSHTunnelForwarder(
@@ -56,7 +54,7 @@ def get_knowledges():
                 )
             return df_from_db
         except pymysql.MySQLError as e:
-            print(f"Error connecting to MySQL: {e}")
+            raise pymysql.MySQLError(e)
         finally:
             if conn is not None:
                 conn.close()
