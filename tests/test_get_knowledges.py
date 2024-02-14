@@ -1,9 +1,10 @@
+import pandas as pd
 import pymysql
 import pytest
 
 from vook_db_v7.local_config import SSH_PKEY_PATH, get_ec2_config
 from vook_db_v7.rds_handler import get_knowledges
-from vook_db_v7.utils import validate_input
+from vook_db_v7.utils import convertor, validate_input
 
 
 class TestGetKnowledgesInvalid:
@@ -67,4 +68,13 @@ def test_validate_input_invalid():
     word = "BIG E"
     actual = validate_input(word)
     expected = "BIGE"
+    assert actual == expected
+
+
+def test_convertor_valid():
+    word_bfr = "BIG E"
+    word_aft = "BIGE"
+    ng_ok_table = pd.read_csv("./data/input/query_ng_ok.csv")
+    actual = convertor(word_bfr, ng_ok_table)
+    expected = word_aft
     assert actual == expected
