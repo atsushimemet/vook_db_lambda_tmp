@@ -41,10 +41,7 @@ def DataFrame_maker_rakuten_setup(keyword) -> Tuple[int, pd.DataFrame, dict]:
 def DataFrame_maker_rakuten(keyword, platform_id, knowledge_id, size_id):
     """apiコールした結果からdataframeを出力する関数を定義"""
     # TODO: setup関数
-    cnt = 1
-    df = pd.DataFrame(columns=WANT_ITEMS_RAKUTEN)
-    req_params["page"] = cnt
-    req_params["keyword"] = keyword
+    cnt, df, req_params = DataFrame_maker_rakuten_setup(keyword)
     while True:
         req_params["page"] = cnt
         res = requests.get(REQ_URL, req_params)
