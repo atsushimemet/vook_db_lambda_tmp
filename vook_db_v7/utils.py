@@ -8,6 +8,7 @@ import time
 import urllib
 from io import BytesIO, StringIO
 from time import sleep
+from typing import Tuple
 
 import boto3
 import numpy as np
@@ -29,14 +30,25 @@ from vook_db_v7.local_config import ClientId, aff_id, get_ec2_config
 from vook_db_v7.rds_handler import get_knowledges
 
 
-def DataFrame_maker_rakuten(keyword, platform_id, knowledge_id, size_id):
-    """apiコールした結果からdataframeを出力する関数を定義"""
+def DataFrame_maker_rakuten_setup(keyword) -> Tuple[int, pd.DataFrame, dict]:
     cnt = 1
     df = pd.DataFrame(columns=WANT_ITEMS_RAKUTEN)
     req_params["page"] = cnt
     req_params["keyword"] = keyword
+    return cnt, df, req_params
+
+
+def DataFrame_maker_rakuten_update_params(req_params: dict, cnt: int) -> dict:
+    req_params["page"] = cnt
+    return req_params
+
+
+def DataFrame_maker_rakuten(keyword, platform_id, knowledge_id, size_id):
+    """apiコールした結果からdataframeを出力する関数を定義"""
+    # TODO: setup関数
+    cnt, df, req_params = DataFrame_maker_rakuten_setup(keyword)
     while True:
-        req_params["page"] = cnt
+        req_params = DataFrame_maker_rakuten_update_params(req_params, cnt)
         res = requests.get(REQ_URL, req_params)
         res_code = res.status_code
         res = json.loads(res.text)
